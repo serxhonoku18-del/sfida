@@ -28,25 +28,36 @@
         <div class="auth-container">
             <div class="auth-header">
                 <button class="back-btn" onclick="showScreen('splash-screen')">&#8592;</button>
-                <h2>Hyr me numrin e telefonit</h2>
+                <h2>Hyr me email</h2>
             </div>
             <div class="auth-form">
-                <div class="phone-input-group">
-                    <span class="country-code">+355</span>
-                    <input type="tel" id="phone-input" placeholder="6X XXX XXXX" maxlength="10">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email-input" placeholder="emailijot@shembull.com">
                 </div>
-                <button class="btn btn-primary btn-large" onclick="sendSMSCode()">Dërgo kodin SMS</button>
+                <div class="form-group">
+                    <label>Fjalëkalimi</label>
+                    <input type="password" id="password-input" placeholder="Shkruaj fjalëkalimin">
+                </div>
+                <button class="btn btn-primary btn-large" onclick="loginWithEmail()">Hyr</button>
+                <div class="auth-divider"><span>ose</span></div>
+                <button class="btn btn-ghost btn-large" onclick="showRegister()">Krijo llogari të re</button>
             </div>
 
-            <div id="sms-verify" class="hidden">
-                <p class="sms-sent-text">Kodi u dërgua te numri yt</p>
-                <div class="code-input-group">
-                    <input type="text" class="code-digit" maxlength="1" data-index="0">
-                    <input type="text" class="code-digit" maxlength="1" data-index="1">
-                    <input type="text" class="code-digit" maxlength="1" data-index="2">
-                    <input type="text" class="code-digit" maxlength="1" data-index="3">
+            <div id="register-form" class="hidden">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="register-email" placeholder="emailijot@shembull.com">
                 </div>
-                <button class="btn btn-primary btn-large" onclick="verifySMS()">Verifiko</button>
+                <div class="form-group">
+                    <label>Fjalëkalimi</label>
+                    <input type="password" id="register-password" placeholder="Min 6 karaktere">
+                </div>
+                <div class="form-group">
+                    <label>Konfirmo fjalëkalimin</label>
+                    <input type="password" id="register-password-confirm" placeholder="Shkruaje përsëri">
+                </div>
+                <button class="btn btn-primary btn-large" onclick="registerWithEmail()">Regjistrohu</button>
             </div>
         </div>
     </div>

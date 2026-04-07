@@ -117,34 +117,68 @@ function showScreen(screenId) {
 }
 
 // --- Auth Flow ---
-function sendSMSCode() {
-    const phone = document.getElementById('phone-input').value;
-    if (!phone || phone.length < 8) {
-        showToast('Shkruaj numrin e telefonit', 'error');
-        return;
-    }
-    document.getElementById('sms-verify').classList.remove('hidden');
-    showToast('Kodi u dërgua!', 'success');
-
-    // Auto focus first digit
-    document.querySelector('.code-digit[data-index="0"]').focus();
+function getUsers() {
+    return JSON.parse(localStorage.getItem('sfida_users') || '{}');
 }
 
-// SMS code digit auto-advance
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.code-digit').forEach(input => {
-        input.addEventListener('input', (e) => {
-            if (e.target.value && e.target.dataset.index < 3) {
-                document.querySelector(`.code-digit[data-index="${parseInt(e.target.dataset.index) + 1}"]`).focus();
-            }
-        });
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && !e.target.value && e.target.dataset.index > 0) {
-                document.querySelector(`.code-digit[data-index="${parseInt(e.target.dataset.index) - 1}"]`).focus();
-            }
-        });
-    });
+function saveUsers(users) {
+    localStorage.setItem('sfida_users', JSON.stringify(users));
+}
 
+function loginWithEmail() {
+    const email = document.getElementById('email-input').value.trim().toLowerCase();
+    const password = document.getElementById('password-input').value;
+
+    if (!email || !email.includes('@')) { showToast('Shkruaj email-in', 'error'); return; }
+    if (!password) { showToast('Shkruaj fjalëkalimin', 'error'); return; }
+
+    const users = getUsers();
+    const user = users[email];
+
+    if (!user) {
+        showToast('Nuk ekziston llogari me këtë email', 'error');
+        return;
+    }
+    if (user.password !== password) {
+        showToast('Fjalëkalimi gabim', 'error');
+        return;
+    }
+
+    currentUser = user;
+    localStorage.setItem('sfida_user', JSON.stringify(currentUser));
+    showToast('Mirë se u ktheve!', 'success');
+    showScreen('main-screen');
+    updateProfileDisplay();
+}
+
+function showRegister() {
+    document.querySelector('.auth-form').classList.add('hidden');
+    document.getElementById('register-form').classList.remove('hidden');
+}
+
+function registerWithEmail() {
+    const email = document.getElementById('register-email').value.trim().toLowerCase();
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-password-confirm').value;
+
+    if (!email || !email.includes('@')) { showToast('Shkruaj email-in', 'error'); return; }
+    if (password.length < 6) { showToast('Fjalëkalimi duhet min 6 karaktere', 'error'); return; }
+    if (password !== confirmPassword) { showToast('Fjalëkalimet nuk përputhen', 'error'); return; }
+
+    const users = getUsers();
+    if (users[email]) {
+        showToast('Ky email është regjistruar tashmë', 'error');
+        return;
+    }
+
+    // Store email temporarily, finish profile setup next
+    localStorage.setItem('sfida_pending_email', email);
+    localStorage.setItem('sfida_pending_password', password);
+    showToast('Email u verifikua!', 'success');
+    showScreen('profile-setup-screen');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     // Check for saved user
     const saved = localStorage.getItem('sfida_user');
     if (saved) {
@@ -159,19 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
 });
-
-function verifySMS() {
-    const digits = document.querySelectorAll('.code-digit');
-    let code = '';
-    digits.forEach(d => code += d.value);
-    if (code.length < 4) {
-        showToast('Shkruaj kodin e plotë', 'error');
-        return;
-    }
-    // Demo: any 4 digits work
-    showToast('Verifikuar!', 'success');
-    showScreen('profile-setup-screen');
-}
 
 // --- Profile Setup ---
 function previewPhoto(input) {
@@ -232,8 +253,13 @@ function completeSignup() {
         });
     });
 
+    const email = localStorage.getItem('sfida_pending_email') || '';
+    const password = localStorage.getItem('sfida_pending_password') || '';
+
     currentUser = {
         id: Date.now(),
+        email,
+        password,
         name,
         age,
         gender: selectedGender,
@@ -247,6 +273,15 @@ function completeSignup() {
         noShows: 0,
         badges: []
     };
+
+    // Save user to users list
+    if (email) {
+        const users = getUsers();
+        users[email] = currentUser;
+        saveUsers(users);
+        localStorage.removeItem('sfida_pending_email');
+        localStorage.removeItem('sfida_pending_password');
+    }
 
     localStorage.setItem('sfida_user', JSON.stringify(currentUser));
     showToast('Mirë se erdhe në Sfida!', 'success');

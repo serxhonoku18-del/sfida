@@ -145,65 +145,24 @@ body {
     padding: 8px 12px 8px 0;
 }
 
-/* Phone Input */
-.phone-input-group {
+/* Auth Divider */
+.auth-divider {
     display: flex;
     align-items: center;
-    background: var(--bg-input);
-    border-radius: var(--radius);
-    padding: 4px;
-    margin-bottom: 20px;
-    border: 2px solid var(--border);
-    transition: border-color 0.2s;
+    gap: 16px;
+    margin: 16px 0;
 }
-.phone-input-group:focus-within { border-color: var(--primary); }
-.country-code {
-    padding: 12px 16px;
-    color: var(--text-secondary);
-    font-weight: 600;
-    font-size: 16px;
-    border-right: 1px solid var(--border);
-}
-.phone-input-group input {
+.auth-divider::before, .auth-divider::after {
+    content: '';
     flex: 1;
-    background: none;
-    border: none;
-    color: var(--text);
-    font-size: 18px;
-    padding: 12px 16px;
-    font-family: inherit;
-    outline: none;
-    letter-spacing: 1px;
+    height: 1px;
+    background: var(--border);
 }
-
-/* SMS Code */
-.sms-sent-text {
-    color: var(--success);
-    text-align: center;
-    margin: 20px 0;
-    font-size: 14px;
+.auth-divider span {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
 }
-.code-input-group {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-bottom: 24px;
-}
-.code-digit {
-    width: 56px;
-    height: 64px;
-    text-align: center;
-    font-size: 24px;
-    font-weight: 700;
-    background: var(--bg-input);
-    border: 2px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.2s;
-}
-.code-digit:focus { border-color: var(--primary); }
 
 /* ===== PROFILE FORM ===== */
 .profile-form { display: flex; flex-direction: column; gap: 20px; }
