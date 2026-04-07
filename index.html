@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0D0D0D">
+    <title>Sfida — Gjej lojtarë, sfido, loz!</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen" class="screen active">
+        <div class="splash-content">
+            <div class="splash-logo">SFIDA</div>
+            <p class="splash-tagline">Gjej lojtarë. Sfido. Fito.</p>
+            <button class="btn btn-primary btn-large" onclick="showScreen('login-screen')">Hyr / Regjistrohu</button>
+            <button class="btn btn-ghost" onclick="showScreen('main-screen')">Shiko hartën</button>
+        </div>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="screen">
+        <div class="auth-container">
+            <div class="auth-header">
+                <button class="back-btn" onclick="showScreen('splash-screen')">&#8592;</button>
+                <h2>Hyr me numrin e telefonit</h2>
+            </div>
+            <div class="auth-form">
+                <div class="phone-input-group">
+                    <span class="country-code">+355</span>
+                    <input type="tel" id="phone-input" placeholder="6X XXX XXXX" maxlength="10">
+                </div>
+                <button class="btn btn-primary btn-large" onclick="sendSMSCode()">Dërgo kodin SMS</button>
+            </div>
+
+            <div id="sms-verify" class="hidden">
+                <p class="sms-sent-text">Kodi u dërgua te numri yt</p>
+                <div class="code-input-group">
+                    <input type="text" class="code-digit" maxlength="1" data-index="0">
+                    <input type="text" class="code-digit" maxlength="1" data-index="1">
+                    <input type="text" class="code-digit" maxlength="1" data-index="2">
+                    <input type="text" class="code-digit" maxlength="1" data-index="3">
+                </div>
+                <button class="btn btn-primary btn-large" onclick="verifySMS()">Verifiko</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE SETUP SCREEN -->
+    <div id="profile-setup-screen" class="screen">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h2>Krijo profilin tënd</h2>
+                <p class="subtitle">Të gjitha fushat janë të detyrueshme</p>
+            </div>
+            <div class="profile-form">
+                <div class="photo-upload" onclick="document.getElementById('photo-file').click()">
+                    <div id="photo-preview" class="photo-placeholder">
+                        <span class="camera-icon">📷</span>
+                        <span>Ngarko foton e fytyrës</span>
+                    </div>
+                    <input type="file" id="photo-file" accept="image/*" class="hidden" onchange="previewPhoto(this)">
+                </div>
+
+                <div class="form-group">
+                    <label>Emri</label>
+                    <input type="text" id="profile-name" placeholder="Emri yt">
+                </div>
+
+                <div class="form-group">
+                    <label>Mosha</label>
+                    <input type="number" id="profile-age" placeholder="Mosha (min 16)" min="16" max="99">
+                </div>
+
+                <div class="form-group">
+                    <label>Gjinia</label>
+                    <div class="gender-select">
+                        <button class="gender-btn" data-gender="djem" onclick="selectGender(this)">Djalë</button>
+                        <button class="gender-btn" data-gender="vajza" onclick="selectGender(this)">Vajzë</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Lagja</label>
+                    <select id="profile-lagja">
+                        <option value="">Zgjidh lagjën</option>
+                        <option>Blloku</option>
+                        <option>Astiri</option>
+                        <option>Komuna e Parisit</option>
+                        <option>Laprakë</option>
+                        <option>Kamëz</option>
+                        <option>21 Dhjetori</option>
+                        <option>Selitë</option>
+                        <option>Medreseja</option>
+                        <option>Kinostudio</option>
+                        <option>Sauk</option>
+                        <option>Tirana e Re</option>
+                        <option>Kombinat</option>
+                        <option>Yzberisht</option>
+                        <option>Porcelan</option>
+                        <option>Fresk</option>
+                        <option>Shkozë</option>
+                        <option>Ali Demi</option>
+                        <option>Rruga e Elbasanit</option>
+                        <option>Kodra e Diellit</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary btn-large" onclick="showScreen('sports-setup-screen')">Vazhdo &#8594;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPORTS SETUP SCREEN -->
+    <div id="sports-setup-screen" class="screen">
+        <div class="auth-container">
+            <div class="auth-header">
+                <button class="back-btn" onclick="showScreen('profile-setup-screen')">&#8592;</button>
+                <h2>Zgjidh sportet</h2>
+                <p class="subtitle">Zgjidh të paktën 1 sport</p>
+            </div>
+            <div class="sports-grid">
+                <div class="sport-card" data-sport="futboll" onclick="toggleSport(this)">
+                    <span class="sport-emoji">⚽</span>
+                    <span class="sport-name">Futboll</span>
+                    <div class="skill-selector hidden">
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'fillestar')">Fillestar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'mesatar')">Mesatar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'i-forte')">I fortë</button>
+                    </div>
+                </div>
+                <div class="sport-card" data-sport="basketboll" onclick="toggleSport(this)">
+                    <span class="sport-emoji">🏀</span>
+                    <span class="sport-name">Basketboll</span>
+                    <div class="skill-selector hidden">
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'fillestar')">Fillestar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'mesatar')">Mesatar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'i-forte')">I fortë</button>
+                    </div>
+                </div>
+                <div class="sport-card" data-sport="pingpong" onclick="toggleSport(this)">
+                    <span class="sport-emoji">🏓</span>
+                    <span class="sport-name">Ping Pong</span>
+                    <div class="skill-selector hidden">
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'fillestar')">Fillestar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'mesatar')">Mesatar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'i-forte')">I fortë</button>
+                    </div>
+                </div>
+                <div class="sport-card" data-sport="volejboll" onclick="toggleSport(this)">
+                    <span class="sport-emoji">🏐</span>
+                    <span class="sport-name">Volejboll</span>
+                    <div class="skill-selector hidden">
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'fillestar')">Fillestar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'mesatar')">Mesatar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'i-forte')">I fortë</button>
+                    </div>
+                </div>
+                <div class="sport-card" data-sport="tenis" onclick="toggleSport(this)">
+                    <span class="sport-emoji">🎾</span>
+                    <span class="sport-name">Tenis</span>
+                    <div class="skill-selector hidden">
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'fillestar')">Fillestar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'mesatar')">Mesatar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'i-forte')">I fortë</button>
+                    </div>
+                </div>
+                <div class="sport-card" data-sport="badminton" onclick="toggleSport(this)">
+                    <span class="sport-emoji">🏸</span>
+                    <span class="sport-name">Badminton</span>
+                    <div class="skill-selector hidden">
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'fillestar')">Fillestar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'mesatar')">Mesatar</button>
+                        <button class="skill-btn" onclick="event.stopPropagation(); selectSkill(this, 'i-forte')">I fortë</button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-large" onclick="completeSignup()">Përfundo &#10003;</button>
+        </div>
+    </div>
+
+    <!-- MAIN SCREEN (MAP + FEED) -->
+    <div id="main-screen" class="screen">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="logo-small">SFIDA</div>
+            <div class="sport-filters">
+                <button class="filter-btn active" data-filter="all" onclick="filterSport('all', this)">Të gjitha</button>
+                <button class="filter-btn" data-filter="futboll" onclick="filterSport('futboll', this)">⚽</button>
+                <button class="filter-btn" data-filter="basketboll" onclick="filterSport('basketboll', this)">🏀</button>
+                <button class="filter-btn" data-filter="pingpong" onclick="filterSport('pingpong', this)">🏓</button>
+                <button class="filter-btn" data-filter="volejboll" onclick="filterSport('volejboll', this)">🏐</button>
+                <button class="filter-btn" data-filter="tenis" onclick="filterSport('tenis', this)">🎾</button>
+                <button class="filter-btn" data-filter="badminton" onclick="filterSport('badminton', this)">🏸</button>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div id="map"></div>
+
+        <!-- Gender Filter -->
+        <div class="gender-filter">
+            <button class="gender-filter-btn active" data-gfilter="all" onclick="filterGender('all', this)">Të gjithë</button>
+            <button class="gender-filter-btn" data-gfilter="djem" onclick="filterGender('djem', this)">Vetëm Djem</button>
+            <button class="gender-filter-btn" data-gfilter="vajza" onclick="filterGender('vajza', this)">Vetëm Vajza</button>
+        </div>
+
+        <!-- Challenge Cards (slides up from bottom) -->
+        <div class="challenge-feed" id="challenge-feed">
+            <div class="feed-handle" onclick="toggleFeed()"><span></span></div>
+            <h3 class="feed-title">Sfidat aktive</h3>
+            <div id="challenge-list"></div>
+        </div>
+
+        <!-- Create Challenge FAB -->
+        <button class="fab" onclick="showScreen('create-challenge-screen')" id="create-fab">
+            <span>+</span> Krijo Sfidë
+        </button>
+
+        <!-- Bottom Nav -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" onclick="switchTab('map', this)">
+                <span class="nav-icon">🗺️</span>
+                <span class="nav-label">Harta</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('challenges', this)">
+                <span class="nav-icon">⚡</span>
+                <span class="nav-label">Sfidat</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('chat', this)">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Chat</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('profile', this)">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Profili</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- CREATE CHALLENGE SCREEN -->
+    <div id="create-challenge-screen" class="screen">
+        <div class="create-container">
+            <div class="auth-header">
+                <button class="back-btn" onclick="showScreen('main-screen')">&#8592;</button>
+                <h2>Krijo Sfidë</h2>
+            </div>
+
+            <div class="create-form">
+                <!-- Sport Selection -->
+                <div class="form-group">
+                    <label>Sporti</label>
+                    <div class="create-sport-grid">
+                        <button class="create-sport-btn" data-sport="futboll" onclick="selectChallengeSport(this)">⚽ Futboll</button>
+                        <button class="create-sport-btn" data-sport="basketboll" onclick="selectChallengeSport(this)">🏀 Basketboll</button>
+                        <button class="create-sport-btn" data-sport="pingpong" onclick="selectChallengeSport(this)">🏓 Ping Pong</button>
+                        <button class="create-sport-btn" data-sport="volejboll" onclick="selectChallengeSport(this)">🏐 Volejboll</button>
+                        <button class="create-sport-btn" data-sport="tenis" onclick="selectChallengeSport(this)">🎾 Tenis</button>
+                        <button class="create-sport-btn" data-sport="badminton" onclick="selectChallengeSport(this)">🏸 Badminton</button>
+                    </div>
+                </div>
+
+                <!-- Format -->
+                <div class="form-group">
+                    <label>Formati</label>
+                    <div class="format-grid">
+                        <button class="format-btn" onclick="selectFormat(this, '1v1')">1v1</button>
+                        <button class="format-btn" onclick="selectFormat(this, '2v2')">2v2</button>
+                        <button class="format-btn" onclick="selectFormat(this, '3v3')">3v3</button>
+                        <button class="format-btn" onclick="selectFormat(this, '5v5')">5v5</button>
+                    </div>
+                </div>
+
+                <!-- Players -->
+                <div class="form-group">
+                    <label>Lojtarë</label>
+                    <div class="players-row">
+                        <div class="player-counter">
+                            <span>Kam</span>
+                            <button class="counter-btn" onclick="adjustCount('have', -1)">-</button>
+                            <span id="have-count">1</span>
+                            <button class="counter-btn" onclick="adjustCount('have', 1)">+</button>
+                        </div>
+                        <div class="player-counter">
+                            <span>Dua edhe</span>
+                            <button class="counter-btn" onclick="adjustCount('need', -1)">-</button>
+                            <span id="need-count">1</span>
+                            <button class="counter-btn" onclick="adjustCount('need', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gender -->
+                <div class="form-group">
+                    <label>Kush mund të luajë?</label>
+                    <div class="gender-select">
+                        <button class="gender-btn" data-cgender="djem" onclick="selectChallengeGender(this)">Vetëm Djem</button>
+                        <button class="gender-btn" data-cgender="vajza" onclick="selectChallengeGender(this)">Vetëm Vajza</button>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="form-group">
+                    <label>Vendndodhja</label>
+                    <div id="mini-map" class="mini-map"></div>
+                    <input type="text" id="location-name" placeholder="Emri i vendit (p.sh. Parku Rinia)">
+                </div>
+
+                <!-- Date & Time -->
+                <div class="form-group">
+                    <label>Kur?</label>
+                    <div class="datetime-row">
+                        <input type="date" id="challenge-date">
+                        <input type="time" id="challenge-time">
+                    </div>
+                </div>
+
+                <!-- Skill Level -->
+                <div class="form-group">
+                    <label>Niveli</label>
+                    <div class="format-grid">
+                        <button class="format-btn" onclick="selectLevel(this, 'chill')">Chill</button>
+                        <button class="format-btn" onclick="selectLevel(this, 'competitive')">Kompetitiv</button>
+                        <button class="format-btn" onclick="selectLevel(this, 'serious')">Serioz</button>
+                    </div>
+                </div>
+
+                <!-- Stake -->
+                <div class="form-group">
+                    <label>Basti (kush humb paguan)</label>
+                    <div class="stake-grid">
+                        <button class="stake-btn" onclick="selectStake(this, 'redbull')">🥤 Red Bull</button>
+                        <button class="stake-btn" onclick="selectStake(this, 'kafe')">☕ Kafe</button>
+                        <button class="stake-btn" onclick="selectStake(this, 'byrek')">🥧 Byrek</button>
+                        <button class="stake-btn" onclick="selectStake(this, 'akullore')">🍦 Akullore</button>
+                        <button class="stake-btn" onclick="selectStake(this, 'pizza')">🍕 Pizza</button>
+                        <button class="stake-btn" onclick="selectStake(this, 'asgje')">🤝 Asgjë</button>
+                    </div>
+                    <input type="text" id="custom-stake" placeholder="Ose shkruaj bastin tënd...">
+                </div>
+
+                <!-- Note -->
+                <div class="form-group">
+                    <label>Shënim (opsionale)</label>
+                    <input type="text" id="challenge-note" placeholder="p.sh. Kemi topin, sjellni ujë...">
+                </div>
+
+                <button class="btn btn-primary btn-large" onclick="createChallenge()">Publiko Sfidën &#10003;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHALLENGE DETAIL MODAL -->
+    <div id="challenge-detail" class="modal hidden">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <div id="challenge-detail-content"></div>
+        </div>
+    </div>
+
+    <!-- CHAT SCREEN -->
+    <div id="chat-screen" class="screen">
+        <div class="chat-container">
+            <div class="chat-header">
+                <button class="back-btn" onclick="showScreen('main-screen')">&#8592;</button>
+                <div class="chat-match-info">
+                    <span id="chat-title">⚽ Futboll 3v3</span>
+                    <span id="chat-subtitle">Parku Rinia — Sot 18:00</span>
+                </div>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-quick-btns">
+                <button class="quick-btn" onclick="sendQuickMsg('Po vij!')">Po vij!</button>
+                <button class="quick-btn" onclick="sendQuickMsg('Po vonohem')">Po vonohem</button>
+                <button class="quick-btn" onclick="sendQuickMsg('Jam aty!')">Jam aty!</button>
+            </div>
+            <div class="chat-input-bar">
+                <input type="text" id="chat-input" placeholder="Shkruaj mesazh..." onkeypress="if(event.key==='Enter')sendMessage()">
+                <button class="send-btn" onclick="sendMessage()">&#10148;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE SCREEN -->
+    <div id="profile-screen" class="screen">
+        <div class="profile-container">
+            <div class="auth-header">
+                <button class="back-btn" onclick="showScreen('main-screen')">&#8592;</button>
+                <h2>Profili im</h2>
+            </div>
+            <div class="profile-card">
+                <div class="profile-photo-large" id="profile-photo-display"></div>
+                <h3 id="profile-name-display">—</h3>
+                <p class="profile-meta" id="profile-meta-display">— vjeç • —</p>
+                <div class="profile-stars">
+                    <span>⭐⭐⭐⭐⭐</span>
+                    <span class="rating-text">5.0 (0 vlerësime)</span>
+                </div>
+            </div>
+            <div class="profile-stats">
+                <div class="stat-box">
+                    <span class="stat-num" id="stat-played">0</span>
+                    <span class="stat-label">Ndeshje</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-num" id="stat-wins">0</span>
+                    <span class="stat-label">Fitore</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-num" id="stat-losses">0</span>
+                    <span class="stat-label">Humbje</span>
+                </div>
+            </div>
+            <div class="profile-sports-list" id="profile-sports-display"></div>
+            <div class="profile-badges">
+                <h4>Badges</h4>
+                <div class="badge-grid" id="badge-grid">
+                    <span class="badge badge-locked">🔒 First Blood</span>
+                    <span class="badge badge-locked">🔒 Streak Master</span>
+                    <span class="badge badge-locked">🔒 Social Butterfly</span>
+                    <span class="badge badge-locked">🔒 Iron Man</span>
+                </div>
+            </div>
+            <button class="btn btn-danger" onclick="logout()">Dil nga llogaria</button>
+        </div>
+    </div>
+
+    <!-- CHALLENGE LIST SCREEN (for tab) -->
+    <div id="challenges-tab-screen" class="screen">
+        <div class="challenges-tab-container">
+            <div class="auth-header">
+                <h2>Sfidat e mia</h2>
+            </div>
+            <div class="challenge-tabs">
+                <button class="ctab active" onclick="showChallengeTab('active', this)">Aktive</button>
+                <button class="ctab" onclick="showChallengeTab('pending', this)">Në pritje</button>
+                <button class="ctab" onclick="showChallengeTab('history', this)">Historiku</button>
+            </div>
+            <div id="my-challenges-list" class="my-challenges-list">
+                <div class="empty-state">
+                    <p>Nuk ke sfida akoma</p>
+                    <button class="btn btn-primary" onclick="showScreen('create-challenge-screen')">Krijo sfidën e parë</button>
+                </div>
+            </div>
+        </div>
+        <nav class="bottom-nav">
+            <button class="nav-btn" onclick="switchTab('map', this)">
+                <span class="nav-icon">🗺️</span>
+                <span class="nav-label">Harta</span>
+            </button>
+            <button class="nav-btn active" onclick="switchTab('challenges', this)">
+                <span class="nav-icon">⚡</span>
+                <span class="nav-label">Sfidat</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('chat', this)">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Chat</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('profile', this)">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Profili</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- CHAT LIST SCREEN (for tab) -->
+    <div id="chat-list-screen" class="screen">
+        <div class="chat-list-container">
+            <div class="auth-header">
+                <h2>Bisedat</h2>
+            </div>
+            <div id="chat-list" class="chat-list">
+                <div class="empty-state">
+                    <p>Nuk ke biseda akoma</p>
+                    <p class="subtitle">Bashkohu në një sfidë për të filluar bisedën</p>
+                </div>
+            </div>
+        </div>
+        <nav class="bottom-nav">
+            <button class="nav-btn" onclick="switchTab('map', this)">
+                <span class="nav-icon">🗺️</span>
+                <span class="nav-label">Harta</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('challenges', this)">
+                <span class="nav-icon">⚡</span>
+                <span class="nav-label">Sfidat</span>
+            </button>
+            <button class="nav-btn active" onclick="switchTab('chat', this)">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Chat</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('profile', this)">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Profili</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- PLAYER REQUEST MODAL -->
+    <div id="request-modal" class="modal hidden">
+        <div class="modal-content modal-small">
+            <h3>Kërkesë e re!</h3>
+            <div id="request-player-info"></div>
+            <div class="request-actions">
+                <button class="btn btn-primary" onclick="acceptPlayer()">Prano ✓</button>
+                <button class="btn btn-danger" onclick="declinePlayer()">Refuzo ✗</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOST PROMOTION MODAL -->
+    <div id="host-modal" class="modal hidden">
+        <div class="modal-content modal-small">
+            <h3>Bëhu Host</h3>
+            <p>Hosti aktual po të jep rolin e hostit. Do ta pranosh?</p>
+            <div class="request-actions">
+                <button class="btn btn-primary" onclick="acceptHostRole()">Po, pranoj!</button>
+                <button class="btn btn-ghost" onclick="closeHostModal()">Jo faleminderit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RATE PLAYERS MODAL -->
+    <div id="rate-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Vlerëso lojtarët</h3>
+            <div id="rate-players-list"></div>
+            <button class="btn btn-primary btn-large" onclick="submitRatings()">Dërgo vlerësimin</button>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
