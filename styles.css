@@ -462,6 +462,140 @@ select{appearance:none}
 .stat span{font-size:11px;color:var(--t2)}
 .prof-sports{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
 
+/* ===== ACHIEVEMENT BADGES ===== */
+.badges-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+    margin-bottom:24px;
+}
+
+.badge-item{
+    display:flex;flex-direction:column;align-items:center;
+    gap:8px;cursor:pointer;position:relative;
+    transition:transform .2s;
+}
+.badge-item:active{transform:scale(.95)}
+
+/* Badge ring — outer circle */
+.badge-ring{
+    width:80px;height:80px;
+    border-radius:50%;
+    position:relative;
+    display:flex;align-items:center;justify-content:center;
+    padding:3px;
+}
+
+/* Inner circle with icon */
+.badge-inner{
+    width:100%;height:100%;border-radius:50%;
+    background:var(--bg);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;z-index:2;
+}
+.badge-icon{
+    font-size:32px;
+    filter:drop-shadow(0 0 6px rgba(255,255,255,.15));
+    transition:transform .3s;
+}
+.badge-item:hover .badge-icon{transform:scale(1.15)}
+
+/* Glow effect behind the ring */
+.badge-glow{
+    position:absolute;inset:-8px;border-radius:50%;
+    z-index:0;opacity:.5;
+    filter:blur(14px);
+    animation:pulse-glow 3s ease-in-out infinite;
+}
+
+/* Color variants — rings */
+.ring-red{
+    background:conic-gradient(from 0deg,#FF4D00,#FF1744,#FF6D00,#FF4D00);
+    box-shadow:0 0 20px rgba(255,77,0,.3),inset 0 0 12px rgba(255,77,0,.15);
+}
+.ring-pink{
+    background:conic-gradient(from 0deg,#E91E63,#FF4081,#F48FB1,#E91E63);
+    box-shadow:0 0 20px rgba(233,30,99,.3),inset 0 0 12px rgba(233,30,99,.15);
+}
+.ring-gold{
+    background:conic-gradient(from 0deg,#FFB800,#FDD835,#FFE082,#FFB800);
+    box-shadow:0 0 20px rgba(255,184,0,.3),inset 0 0 12px rgba(255,184,0,.15);
+}
+.ring-purple{
+    background:conic-gradient(from 0deg,#9C27B0,#CE93D8,#7B1FA2,#9C27B0);
+    box-shadow:0 0 20px rgba(156,39,176,.3),inset 0 0 12px rgba(156,39,176,.15);
+}
+.ring-cyan{
+    background:conic-gradient(from 0deg,#00BCD4,#26C6DA,#80DEEA,#00BCD4);
+    box-shadow:0 0 20px rgba(0,188,212,.3),inset 0 0 12px rgba(0,188,212,.15);
+}
+
+/* Glow colors */
+.glow-red{background:radial-gradient(circle,rgba(255,77,0,.6),transparent 70%)}
+.glow-pink{background:radial-gradient(circle,rgba(233,30,99,.6),transparent 70%)}
+.glow-gold{background:radial-gradient(circle,rgba(255,184,0,.6),transparent 70%)}
+.glow-purple{background:radial-gradient(circle,rgba(156,39,176,.6),transparent 70%)}
+.glow-cyan{background:radial-gradient(circle,rgba(0,188,212,.6),transparent 70%)}
+
+/* Labels */
+.badge-label{
+    font-size:12px;font-weight:700;
+    letter-spacing:.5px;
+    color:var(--t);
+}
+.badge-desc{
+    font-size:10px;color:var(--t3);
+    text-align:center;line-height:1.3;
+}
+
+/* Locked state */
+.badge-item.locked .badge-ring{
+    background:conic-gradient(from 0deg,#333,#444,#333);
+    box-shadow:none;
+}
+.badge-item.locked .badge-inner{background:var(--bg2)}
+.badge-item.locked .badge-icon{
+    filter:grayscale(1) brightness(.5);
+    font-size:28px;
+}
+.badge-item.locked .badge-label{color:var(--t3)}
+.badge-item.locked .badge-glow{display:none}
+.badge-item.locked::after{
+    content:'🔒';
+    position:absolute;
+    font-size:14px;
+    margin-top:-30px;
+    z-index:5;
+}
+
+/* Unlocked shimmer animation on the ring */
+.badge-item.unlocked .badge-ring::after{
+    content:'';
+    position:absolute;inset:0;border-radius:50%;
+    background:conic-gradient(from 0deg,transparent 0%,rgba(255,255,255,.15) 10%,transparent 20%);
+    animation:ring-spin 4s linear infinite;
+    z-index:1;
+}
+
+/* Pulse glow animation */
+@keyframes pulse-glow{
+    0%,100%{opacity:.4;transform:scale(1)}
+    50%{opacity:.7;transform:scale(1.05)}
+}
+
+/* Ring shimmer spin */
+@keyframes ring-spin{
+    0%{transform:rotate(0deg)}
+    100%{transform:rotate(360deg)}
+}
+
+/* Responsive: 2 columns on tiny phones */
+@media(max-width:320px){
+    .badges-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+    .badge-ring{width:68px;height:68px}
+    .badge-icon{font-size:26px}
+}
+
 /* ===== CHAT LIST ===== */
 .chat-item{
     display:flex;align-items:center;gap:10px;
