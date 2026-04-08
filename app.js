@@ -1,1008 +1,725 @@
-// ===== SFIDA APP =====
+// ===== SFIDA APP — v2 =====
+
+// --- Constants ---
+const SPORTS = {
+    futboll:{e:'⚽',n:'Futboll'},basketboll:{e:'🏀',n:'Basketboll'},
+    pingpong:{e:'🏓',n:'Ping Pong'},volejboll:{e:'🏐',n:'Volejboll'},
+    tenis:{e:'🎾',n:'Tenis'},badminton:{e:'🏸',n:'Badminton'}
+};
+const STAKES = {
+    redbull:'🥤 Red Bull',kafe:'☕ Kafe',byrek:'🥧 Byrek',
+    akullore:'🍦 Akullore',pizza:'🍕 Pizza',asgje:'🤝 Asgjë'
+};
 
 // --- State ---
-let currentUser = null;
-let challenges = [];
-let markers = [];
-let map = null;
-let miniMap = null;
-let miniMapMarker = null;
-let currentFilter = 'all';
-let currentGenderFilter = 'all';
-let feedExpanded = false;
-let selectedChallengeSport = null;
-let selectedFormat = null;
-let selectedLevel = null;
-let selectedStake = null;
-let selectedChallengeGender = null;
-let haveCount = 1;
-let needCount = 1;
-let challengeLocation = null;
+let me = null;           // current user
+let games = [];          // all challenges
+let mapObj = null;       // Leaflet map
+let miniMapObj = null;
+let miniPin = null;
+let mapPins = [];
+let filter = 'all';
+let genderFilter = 'all';
+let chatData = {};       // {gameId: [msgs]}
 
-const sportEmojis = {
-    futboll: '⚽', basketboll: '🏀', pingpong: '🏓',
-    volejboll: '🏐', tenis: '🎾', badminton: '🏸'
-};
-const sportNames = {
-    futboll: 'Futboll', basketboll: 'Basketboll', pingpong: 'Ping Pong',
-    volejboll: 'Volejboll', tenis: 'Tenis', badminton: 'Badminton'
-};
-const stakeLabels = {
-    redbull: '🥤 Red Bull', kafe: '☕ Kafe', byrek: '🥧 Byrek',
-    akullore: '🍦 Akullore', pizza: '🍕 Pizza', asgje: '🤝 Asgjë'
-};
+// Create form state
+let cf = {sport:null,format:null,cgender:null,stake:'asgje',have:1,need:1,loc:null};
 
 // --- Demo data ---
 const demoUsers = [
-    { id: 1, name: 'Aldi', age: 22, gender: 'djem', lagja: 'Blloku', photo: null, rating: 4.8, matches: 15, wins: 10, losses: 5 },
-    { id: 2, name: 'Erion', age: 19, gender: 'djem', lagja: 'Astiri', photo: null, rating: 4.5, matches: 8, wins: 5, losses: 3 },
-    { id: 3, name: 'Klajdi', age: 24, gender: 'djem', lagja: 'Komuna e Parisit', photo: null, rating: 4.9, matches: 22, wins: 18, losses: 4 },
-    { id: 4, name: 'Sara', age: 20, gender: 'vajza', lagja: 'Tirana e Re', photo: null, rating: 4.7, matches: 12, wins: 9, losses: 3 },
-    { id: 5, name: 'Dori', age: 21, gender: 'djem', lagja: 'Sauk', photo: null, rating: 4.3, matches: 6, wins: 3, losses: 3 },
-    { id: 6, name: 'Enxhi', age: 18, gender: 'vajza', lagja: 'Laprakë', photo: null, rating: 4.6, matches: 10, wins: 7, losses: 3 },
+    {id:1,name:'Aldi',age:22,gender:'djem',lagja:'Blloku',photo:null,rating:4.8,matches:15,wins:10,losses:5},
+    {id:2,name:'Erion',age:19,gender:'djem',lagja:'Astiri',photo:null,rating:4.5,matches:8,wins:5,losses:3},
+    {id:3,name:'Klajdi',age:24,gender:'djem',lagja:'Komuna e Parisit',photo:null,rating:4.9,matches:22,wins:18,losses:4},
+    {id:4,name:'Sara',age:20,gender:'vajza',lagja:'Tirana e Re',photo:null,rating:4.7,matches:12,wins:9,losses:3},
+    {id:5,name:'Dori',age:21,gender:'djem',lagja:'Sauk',photo:null,rating:4.3,matches:6,wins:3,losses:3},
+    {id:6,name:'Enxhi',age:18,gender:'vajza',lagja:'Laprakë',photo:null,rating:4.6,matches:10,wins:7,losses:3}
 ];
 
-const demoChallenges = [
-    {
-        id: 1, sport: 'futboll', format: '3v3', have: 2, need: 4,
-        location: { lat: 41.3275, lng: 19.8187, name: 'Parku Rinia' },
-        date: '2026-04-07', time: '18:00', level: 'competitive',
-        stake: 'redbull', gender: 'djem', note: 'Kemi topin, sjellni ujë',
-        host: demoUsers[0], players: [demoUsers[0], demoUsers[1]],
-        status: 'active'
-    },
-    {
-        id: 2, sport: 'basketboll', format: '2v2', have: 1, need: 3,
-        location: { lat: 41.3300, lng: 19.8230, name: 'Fusha e Basketbollit, Bllok' },
-        date: '2026-04-07', time: '17:00', level: 'chill',
-        stake: 'kafe', gender: 'djem', note: '',
-        host: demoUsers[2], players: [demoUsers[2]],
-        status: 'active'
-    },
-    {
-        id: 3, sport: 'pingpong', format: '1v1', have: 1, need: 1,
-        location: { lat: 41.3250, lng: 19.8150, name: 'Parku i Liqenit' },
-        date: '2026-04-08', time: '16:00', level: 'serious',
-        stake: 'pizza', gender: 'djem', note: 'Kam raketat',
-        host: demoUsers[4], players: [demoUsers[4]],
-        status: 'active'
-    },
-    {
-        id: 4, sport: 'volejboll', format: '3v3', have: 2, need: 4,
-        location: { lat: 41.3220, lng: 19.8100, name: 'Plazhi i Liqenit' },
-        date: '2026-04-08', time: '10:00', level: 'chill',
-        stake: 'akullore', gender: 'vajza', note: 'Kemi rrjetën',
-        host: demoUsers[3], players: [demoUsers[3], demoUsers[5]],
-        status: 'active'
-    },
-    {
-        id: 5, sport: 'tenis', format: '1v1', have: 1, need: 1,
-        location: { lat: 41.3310, lng: 19.8280, name: 'Kompleksi Olimpik' },
-        date: '2026-04-09', time: '09:00', level: 'competitive',
-        stake: 'byrek', gender: 'djem', note: '',
-        host: demoUsers[1], players: [demoUsers[1]],
-        status: 'active'
-    },
-    {
-        id: 6, sport: 'badminton', format: '2v2', have: 2, need: 2,
-        location: { lat: 41.3290, lng: 19.8160, name: 'Parku i Madh' },
-        date: '2026-04-07', time: '19:00', level: 'chill',
-        stake: 'asgje', gender: 'vajza', note: 'Kemi raketat per te gjithe',
-        host: demoUsers[5], players: [demoUsers[5], demoUsers[3]],
-        status: 'active'
-    }
+const now = new Date();
+const today = now.toISOString().split('T')[0];
+const tomorrow = new Date(now.getTime()+86400000).toISOString().split('T')[0];
+
+const demoGames = [
+    {id:1,sport:'futboll',format:'3v3',have:2,need:4,
+     loc:{lat:41.3275,lng:19.8187,name:'Parku Rinia'},
+     date:today,time:'18:00',level:'competitive',stake:'redbull',
+     gender:'djem',note:'Kemi topin, sjellni ujë',
+     host:demoUsers[0],players:[demoUsers[0],demoUsers[1]],status:'active'},
+    {id:2,sport:'basketboll',format:'2v2',have:1,need:3,
+     loc:{lat:41.3300,lng:19.8230,name:'Fusha Basketbollit, Bllok'},
+     date:today,time:'17:00',level:'chill',stake:'kafe',
+     gender:'djem',note:'',
+     host:demoUsers[2],players:[demoUsers[2]],status:'active'},
+    {id:3,sport:'pingpong',format:'1v1',have:1,need:1,
+     loc:{lat:41.3250,lng:19.8150,name:'Parku i Liqenit'},
+     date:tomorrow,time:'16:00',level:'serious',stake:'pizza',
+     gender:'djem',note:'Kam raketat',
+     host:demoUsers[4],players:[demoUsers[4]],status:'active'},
+    {id:4,sport:'volejboll',format:'3v3',have:2,need:4,
+     loc:{lat:41.3220,lng:19.8100,name:'Plazhi i Liqenit'},
+     date:tomorrow,time:'10:00',level:'chill',stake:'akullore',
+     gender:'vajza',note:'Kemi rrjetën',
+     host:demoUsers[3],players:[demoUsers[3],demoUsers[5]],status:'active'},
+    {id:5,sport:'tenis',format:'1v1',have:1,need:1,
+     loc:{lat:41.3310,lng:19.8280,name:'Kompleksi Olimpik'},
+     date:tomorrow,time:'09:00',level:'competitive',stake:'byrek',
+     gender:'djem',note:'',
+     host:demoUsers[1],players:[demoUsers[1]],status:'active'},
+    {id:6,sport:'badminton',format:'2v2',have:2,need:2,
+     loc:{lat:41.3290,lng:19.8160,name:'Parku i Madh'},
+     date:today,time:'19:00',level:'chill',stake:'asgje',
+     gender:'vajza',note:'Kemi raketat per te gjithe',
+     host:demoUsers[5],players:[demoUsers[5],demoUsers[3]],status:'active'}
 ];
 
-challenges = [...demoChallenges];
-
-// --- Screen Management ---
-function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    const screen = document.getElementById(screenId);
-    if (screen) {
-        screen.classList.add('active');
-        if (screenId === 'main-screen') {
-            setTimeout(() => {
-                if (!map) {
-                    initMap();
-                } else {
-                    map.invalidateSize();
-                }
-            }, 100);
-        }
-        if (screenId === 'create-challenge-screen') {
-            setTimeout(initMiniMap, 200);
-        }
-    }
-}
-
-// --- Auth Flow ---
-function getUsers() {
-    return JSON.parse(localStorage.getItem('sfida_users') || '{}');
-}
-
-function saveUsers(users) {
-    localStorage.setItem('sfida_users', JSON.stringify(users));
-}
-
-function loginWithEmail() {
-    const email = document.getElementById('email-input').value.trim().toLowerCase();
-    const password = document.getElementById('password-input').value;
-
-    if (!email || !email.includes('@')) { showToast('Shkruaj email-in', 'error'); return; }
-    if (!password) { showToast('Shkruaj fjalëkalimin', 'error'); return; }
-
-    const users = getUsers();
-    const user = users[email];
-
-    if (!user) {
-        showToast('Nuk ekziston llogari me këtë email', 'error');
-        return;
-    }
-    if (user.password !== password) {
-        showToast('Fjalëkalimi gabim', 'error');
-        return;
-    }
-
-    currentUser = user;
-    localStorage.setItem('sfida_user', JSON.stringify(currentUser));
-    showToast('Mirë se u ktheve!', 'success');
-    showScreen('main-screen');
-    updateProfileDisplay();
-}
-
-function showRegister() {
-    document.querySelector('.auth-form').classList.add('hidden');
-    document.getElementById('register-form').classList.remove('hidden');
-}
-
-function registerWithEmail() {
-    const email = document.getElementById('register-email').value.trim().toLowerCase();
-    const password = document.getElementById('register-password').value;
-    const confirmPassword = document.getElementById('register-password-confirm').value;
-
-    if (!email || !email.includes('@')) { showToast('Shkruaj email-in', 'error'); return; }
-    if (password.length < 6) { showToast('Fjalëkalimi duhet min 6 karaktere', 'error'); return; }
-    if (password !== confirmPassword) { showToast('Fjalëkalimet nuk përputhen', 'error'); return; }
-
-    const users = getUsers();
-    if (users[email]) {
-        showToast('Ky email është regjistruar tashmë', 'error');
-        return;
-    }
-
-    // Store email temporarily, finish profile setup next
-    localStorage.setItem('sfida_pending_email', email);
-    localStorage.setItem('sfida_pending_password', password);
-    showToast('Email u verifikua!', 'success');
-    showScreen('profile-setup-screen');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Check for saved user
-    const saved = localStorage.getItem('sfida_user');
-    if (saved) {
-        currentUser = JSON.parse(saved);
-        showScreen('main-screen');
-        updateProfileDisplay();
-    }
-
-    // Set default date to today
-    const dateInput = document.getElementById('challenge-date');
-    if (dateInput) {
-        dateInput.value = new Date().toISOString().split('T')[0];
-    }
+games = [...demoGames];
+demoGames.forEach(g => {
+    chatData[g.id] = [{type:'sys',text:`${SPORTS[g.sport].e} Sfida u krijua!`,t:new Date(now.getTime()-7200000)}];
 });
 
-// --- Profile Setup ---
-function previewPhoto(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const preview = document.getElementById('photo-preview');
-            preview.innerHTML = `<img src="${e.target.result}" alt="Photo">`;
+// ========================
+// NAVIGATION
+// ========================
+function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById(id);
+    if (el) {
+        el.classList.add('active');
+        if (id === 'home') { renderCards(); setTimeout(initMap, 80); }
+        if (id === 'create') { setTimeout(initMiniMap, 150); resetWizard(); }
+        if (id === 'profile') updateProfile();
+        if (id === 'my') renderMyGames();
+        if (id === 'chats') renderChatList();
+    }
+}
+
+function navTo(id, btn) {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    // Also sync other nav instances
+    document.querySelectorAll(`.nav-item`).forEach(b => {
+        const text = b.textContent.trim();
+        const targetText = btn ? btn.textContent.trim() : '';
+        if (text === targetText) b.classList.add('active');
+    });
+    if (id === 'profile' && !me) { goTo('auth'); return; }
+    goTo(id);
+}
+
+// ========================
+// AUTH
+// ========================
+function getUsers() { return JSON.parse(localStorage.getItem('sf_users') || '{}'); }
+function saveUsers(u) { localStorage.setItem('sf_users', JSON.stringify(u)); }
+
+function showLogin() {
+    document.getElementById('auth-login').classList.remove('hidden');
+    document.getElementById('auth-reg').classList.add('hidden');
+}
+function showReg() {
+    document.getElementById('auth-login').classList.add('hidden');
+    document.getElementById('auth-reg').classList.remove('hidden');
+}
+
+function doLogin() {
+    const email = document.getElementById('inp-email').value.trim().toLowerCase();
+    const pass = document.getElementById('inp-pass').value;
+    if (!email || !email.includes('@')) return toast('Shkruaj email','err');
+    if (!pass) return toast('Shkruaj fjalëkalimin','err');
+    const users = getUsers();
+    if (!users[email]) return toast('Nuk ekziston llogari','err');
+    if (users[email].password !== pass) return toast('Fjalëkalim gabim','err');
+    me = users[email];
+    localStorage.setItem('sf_me', JSON.stringify(me));
+    toast('Mirë se u ktheve!','ok');
+    goTo('home');
+}
+
+function doRegister() {
+    const email = document.getElementById('inp-reg-email').value.trim().toLowerCase();
+    const pass = document.getElementById('inp-reg-pass').value;
+    const pass2 = document.getElementById('inp-reg-pass2').value;
+    if (!email || !email.includes('@')) return toast('Shkruaj email','err');
+    if (pass.length < 6) return toast('Min 6 karaktere','err');
+    if (pass !== pass2) return toast('Fjalëkalimet nuk përputhen','err');
+    const users = getUsers();
+    if (users[email]) return toast('Email ekziston','err');
+    localStorage.setItem('sf_pending', JSON.stringify({email, password: pass}));
+    toast('Vazhdo me profilin','ok');
+    goTo('setup');
+}
+
+// ========================
+// PROFILE SETUP
+// ========================
+let setupGender = null;
+let setupSports = [];
+
+function onPhoto(inp) {
+    if (inp.files && inp.files[0]) {
+        const r = new FileReader();
+        r.onload = e => {
+            document.getElementById('avatar-preview').innerHTML = `<img src="${e.target.result}">`;
         };
-        reader.readAsDataURL(input.files[0]);
+        r.readAsDataURL(inp.files[0]);
     }
 }
 
-let selectedGender = null;
-function selectGender(btn) {
-    document.querySelectorAll('.gender-btn[data-gender]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedGender = btn.dataset.gender;
+function pickPill(btn, group) {
+    btn.closest('.pill-row').querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+    if (group === 'gender') setupGender = btn.dataset.v;
+    if (group === 'format') cf.format = btn.dataset.v;
+    if (group === 'cgender') cf.cgender = btn.dataset.v;
 }
 
-function toggleSport(card) {
-    card.classList.toggle('selected');
-    const skill = card.querySelector('.skill-selector');
-    if (card.classList.contains('selected')) {
-        skill.classList.remove('hidden');
-    } else {
-        skill.classList.add('hidden');
-        skill.querySelectorAll('.skill-btn').forEach(b => b.classList.remove('active'));
-    }
+function toggleChip(btn) {
+    btn.classList.toggle('on');
 }
 
-function selectSkill(btn, level) {
-    const selector = btn.parentElement;
-    selector.querySelectorAll('.skill-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-}
+function finishSetup() {
+    const name = document.getElementById('inp-name').value.trim();
+    const age = parseInt(document.getElementById('inp-age').value);
+    const lagja = document.getElementById('inp-lagja').value;
+    const photoEl = document.querySelector('#avatar-preview img');
+    const chips = document.querySelectorAll('.sport-chip.on');
 
-function completeSignup() {
-    const name = document.getElementById('profile-name').value;
-    const age = parseInt(document.getElementById('profile-age').value);
-    const lagja = document.getElementById('profile-lagja').value;
-    const photoEl = document.querySelector('#photo-preview img');
-    const selectedSports = document.querySelectorAll('.sport-card.selected');
-
-    if (!name) { showToast('Shkruaj emrin', 'error'); return; }
-    if (!age || age < 16) { showToast('Mosha minimale është 16', 'error'); return; }
-    if (!selectedGender) { showToast('Zgjidh gjininë', 'error'); return; }
-    if (!lagja) { showToast('Zgjidh lagjën', 'error'); return; }
-    if (selectedSports.length === 0) { showToast('Zgjidh të paktën 1 sport', 'error'); return; }
+    if (!name) return toast('Shkruaj emrin','err');
+    if (!age || age < 16) return toast('Mosha min 16','err');
+    if (!setupGender) return toast('Zgjidh gjininë','err');
+    if (!lagja) return toast('Zgjidh lagjën','err');
+    if (!chips.length) return toast('Zgjidh 1+ sport','err');
 
     const sports = [];
-    selectedSports.forEach(card => {
-        const sport = card.dataset.sport;
-        const activeSkill = card.querySelector('.skill-btn.active');
-        sports.push({
-            sport,
-            skill: activeSkill ? activeSkill.textContent : 'Mesatar'
-        });
-    });
+    chips.forEach(c => sports.push(c.dataset.s));
 
-    const email = localStorage.getItem('sfida_pending_email') || '';
-    const password = localStorage.getItem('sfida_pending_password') || '';
+    const pending = JSON.parse(localStorage.getItem('sf_pending') || '{}');
 
-    currentUser = {
-        id: Date.now(),
-        email,
-        password,
-        name,
-        age,
-        gender: selectedGender,
-        lagja,
+    me = {
+        id: Date.now(), email: pending.email || '', password: pending.password || '',
+        name, age, gender: setupGender, lagja,
         photo: photoEl ? photoEl.src : null,
-        sports,
-        rating: 5.0,
-        matches: 0,
-        wins: 0,
-        losses: 0,
-        noShows: 0,
-        badges: []
+        sports, rating: 5.0, matches: 0, wins: 0, losses: 0
     };
 
-    // Save user to users list
-    if (email) {
+    if (pending.email) {
         const users = getUsers();
-        users[email] = currentUser;
+        users[pending.email] = me;
         saveUsers(users);
-        localStorage.removeItem('sfida_pending_email');
-        localStorage.removeItem('sfida_pending_password');
+        localStorage.removeItem('sf_pending');
     }
-
-    localStorage.setItem('sfida_user', JSON.stringify(currentUser));
-    showToast('Mirë se erdhe në Sfida!', 'success');
-    showScreen('main-screen');
-    updateProfileDisplay();
+    localStorage.setItem('sf_me', JSON.stringify(me));
+    toast('Mirë se erdhe!','ok');
+    goTo('home');
 }
 
-// --- Map ---
+// ========================
+// MAP
+// ========================
 function initMap() {
-    if (map) return;
-    map = L.map('map', {
-        zoomControl: false,
-        attributionControl: false
-    }).setView([41.3275, 19.8187], 14);
-
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19
-    }).addTo(map);
-
-    L.control.zoom({ position: 'topright' }).addTo(map);
-
-    renderChallenges();
+    if (mapObj) { mapObj.invalidateSize(); return; }
+    mapObj = L.map('map', {zoomControl:false, attributionControl:false}).setView([41.3275, 19.8187], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(mapObj);
+    L.control.zoom({position:'topright'}).addTo(mapObj);
+    render();
 }
 
 function initMiniMap() {
-    if (miniMap) {
-        miniMap.invalidateSize();
-        return;
-    }
-    miniMap = L.map('mini-map', {
-        zoomControl: false,
-        attributionControl: false
-    }).setView([41.3275, 19.8187], 14);
-
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19
-    }).addTo(miniMap);
-
-    miniMap.on('click', (e) => {
-        if (miniMapMarker) miniMap.removeLayer(miniMapMarker);
-        miniMapMarker = L.marker(e.latlng, {
-            icon: L.divIcon({
-                className: 'challenge-marker marker-futboll',
-                html: '📍',
-                iconSize: [44, 44],
-                iconAnchor: [22, 22]
-            })
-        }).addTo(miniMap);
-        challengeLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
+    if (miniMapObj) { miniMapObj.invalidateSize(); return; }
+    miniMapObj = L.map('mini-map', {zoomControl:false, attributionControl:false}).setView([41.3275, 19.8187], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(miniMapObj);
+    miniMapObj.on('click', e => {
+        if (miniPin) miniMapObj.removeLayer(miniPin);
+        miniPin = L.marker(e.latlng, {
+            icon: L.divIcon({className:'pin pin-futboll',html:'📍',iconSize:[42,42],iconAnchor:[21,21]})
+        }).addTo(miniMapObj);
+        cf.loc = {lat:e.latlng.lat, lng:e.latlng.lng};
     });
 }
 
-function renderChallenges() {
-    // Clear existing markers
-    markers.forEach(m => map.removeLayer(m));
-    markers = [];
+// ========================
+// RENDER (map + cards)
+// ========================
+function render() {
+    renderCards();
+    if (!mapObj) return;
+    // Clear pins
+    mapPins.forEach(p => mapObj.removeLayer(p));
+    mapPins = [];
 
-    const filtered = challenges.filter(c => {
-        if (c.status !== 'active') return false;
-        if (currentFilter !== 'all' && c.sport !== currentFilter) return false;
-        if (currentGenderFilter !== 'all' && c.gender !== currentGenderFilter) return false;
-        return true;
-    });
+    const list = getFiltered();
 
-    // Add markers
-    filtered.forEach(c => {
+    // Map pins
+    list.forEach(g => {
         const icon = L.divIcon({
-            className: `challenge-marker marker-${c.sport}`,
-            html: sportEmojis[c.sport],
-            iconSize: [44, 44],
-            iconAnchor: [22, 22]
+            className:`pin pin-${g.sport}`,
+            html:SPORTS[g.sport].e,
+            iconSize:[42,42], iconAnchor:[21,21]
         });
-
-        const marker = L.marker([c.location.lat, c.location.lng], { icon }).addTo(map);
-        const spotsLeft = (c.need + c.have) - c.players.length;
-
-        marker.bindPopup(`
-            <div class="popup-card">
-                <h4>${sportEmojis[c.sport]} ${sportNames[c.sport]} ${c.format}</h4>
-                <p>📍 ${c.location.name}</p>
-                <p>🕐 ${formatDate(c.date)} ${c.time}</p>
-                <p>👤 Host: ${c.host.name}</p>
-                <span class="popup-spots">${spotsLeft} vende të lira</span>
-                <button class="popup-btn" onclick="openChallengeDetail(${c.id})">Shiko detajet</button>
+        const pin = L.marker([g.loc.lat, g.loc.lng], {icon}).addTo(mapObj);
+        const spots = totalSpots(g) - g.players.length;
+        pin.bindPopup(`
+            <div class="pop">
+                <h4>${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}</h4>
+                <p>📍 ${g.loc.name}</p>
+                <p>🕐 ${fmtDate(g.date)} ${g.time}</p>
+                <p>👥 ${g.players.length}/${totalSpots(g)} lojtarë</p>
+                <button class="pop-btn" onclick="openDetail(${g.id})">Shiko</button>
             </div>
-        `, { closeButton: false, className: 'dark-popup' });
-
-        marker.on('mouseover', function() { this.openPopup(); });
-        markers.push(marker);
+        `, {closeButton:false});
+        pin.on('click', function(){ this.openPopup(); });
+        mapPins.push(pin);
     });
 
-    // Update feed
-    renderFeed(filtered);
 }
 
-function renderFeed(filtered) {
-    const list = document.getElementById('challenge-list');
-    if (!filtered) {
-        filtered = challenges.filter(c => {
-            if (c.status !== 'active') return false;
-            if (currentFilter !== 'all' && c.sport !== currentFilter) return false;
-            if (currentGenderFilter !== 'all' && c.gender !== currentGenderFilter) return false;
-            return true;
-        });
-    }
+function renderCards() {
+    const list = getFiltered();
+    const el = document.getElementById('card-list');
+    if (!list.length) { el.innerHTML = ''; return; }
 
-    if (filtered.length === 0) {
-        list.innerHTML = '<div class="empty-state"><p>Nuk ka sfida aktive</p></div>';
-        return;
-    }
-
-    list.innerHTML = filtered.map(c => {
-        const spotsLeft = (c.need + c.have) - c.players.length;
-        const genderClass = c.gender === 'djem' ? 'gender-djem' : 'gender-vajza';
-        const genderText = c.gender === 'djem' ? 'Djem' : 'Vajza';
+    el.innerHTML = list.map(g => {
+        const spots = totalSpots(g) - g.players.length;
+        const full = spots <= 0;
+        const urgency = getUrgency(g);
         return `
-            <div class="challenge-card" onclick="openChallengeDetail(${c.id})">
-                <div class="challenge-card-top">
-                    <div>
-                        <span class="challenge-sport-badge badge-${c.sport}">${sportEmojis[c.sport]} ${sportNames[c.sport]}</span>
-                        <span class="gender-badge ${genderClass}">${genderText}</span>
-                    </div>
-                    <span class="challenge-format">${c.format}</span>
+        <div class="gcard" onclick="openDetail(${g.id})">
+            <div class="gcard-top">
+                <div class="gcard-sport">
+                    <span class="dot" style="background:var(--${g.sport === 'futboll' ? 'green' : g.sport === 'basketboll' ? 'orange' : g.sport === 'pingpong' ? 'red' : g.sport === 'volejboll' ? 'blue' : g.sport === 'tenis' ? 'lime' : 'purple'})"></span>
+                    ${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}
                 </div>
-                <div class="challenge-card-info">
-                    <span>📍 ${c.location.name}</span>
-                    <span>🕐 ${formatDate(c.date)} — ${c.time}</span>
-                    ${c.note ? `<span>💬 ${c.note}</span>` : ''}
-                </div>
-                <div class="challenge-card-bottom">
-                    <div class="challenge-host">
-                        <div class="host-avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px;">
-                            ${c.host.photo ? `<img src="${c.host.photo}" class="host-avatar">` : c.host.name[0]}
-                        </div>
-                        <span class="host-name">${c.host.name} ⭐${c.host.rating}</span>
-                    </div>
-                    <span class="challenge-stake">${stakeLabels[c.stake] || c.stake}</span>
-                    <span class="spots-badge">${spotsLeft} vende</span>
-                </div>
+                <span class="gcard-time ${urgency.cls}">${urgency.label}</span>
             </div>
-        `;
+            <div class="gcard-mid">
+                <span>📍 ${g.loc.name}</span>
+                <span class="spots">${g.players.length}/${totalSpots(g)}</span>
+                ${g.stake !== 'asgje' ? `<span class="stake-tag">${STAKES[g.stake]}</span>` : ''}
+            </div>
+            <div class="gcard-bottom">
+                <div class="gcard-host">
+                    <div class="av">${g.host.name[0]}</div>
+                    ${g.host.name} ⭐${g.host.rating}
+                </div>
+                <button class="gcard-join ${full ? 'gcard-full' : ''}" onclick="event.stopPropagation();${full ? '' : `joinQuick(${g.id})`}">
+                    ${full ? 'Plotë' : 'Bashkohu'}
+                </button>
+            </div>
+        </div>`;
     }).join('');
 }
 
-// --- Filters ---
-function filterSport(sport, btn) {
-    currentFilter = sport;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderChallenges();
-}
-
-function filterGender(gender, btn) {
-    currentGenderFilter = gender;
-    document.querySelectorAll('.gender-filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderChallenges();
-}
-
-function toggleFeed() {
-    const feed = document.getElementById('challenge-feed');
-    feed.classList.toggle('collapsed');
-    feedExpanded = !feed.classList.contains('collapsed');
-}
-
-// --- Create Challenge ---
-function selectChallengeSport(btn) {
-    document.querySelectorAll('.create-sport-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedChallengeSport = btn.dataset.sport;
-}
-
-function selectFormat(btn, format) {
-    document.querySelectorAll('.format-btn').forEach(b => {
-        if (b.parentElement === btn.parentElement) b.classList.remove('active');
+function getFiltered() {
+    return games.filter(g => {
+        if (g.status !== 'active') return false;
+        if (filter !== 'all' && g.sport !== filter) return false;
+        if (genderFilter !== 'all' && g.gender !== genderFilter) return false;
+        return true;
     });
+}
+
+function totalSpots(g) { return g.have + g.need; }
+
+// Urgency: how soon does it start?
+function getUrgency(g) {
+    const parts = g.date.split('-');
+    const gameDate = new Date(parts[0], parts[1]-1, parts[2]);
+    const [h, m] = g.time.split(':').map(Number);
+    gameDate.setHours(h, m);
+    const diff = gameDate - new Date();
+    const hrs = diff / 3600000;
+
+    if (hrs < 0) return {label:'Tani!', cls:'time-urgent'};
+    if (hrs < 2) return {label:`${Math.max(1,Math.round(hrs*60))} min`, cls:'time-urgent'};
+    if (hrs < 6) return {label:`${Math.round(hrs)} orë`, cls:'time-soon'};
+    if (hrs < 24) return {label:fmtDate(g.date) + ' ' + g.time, cls:'time-later'};
+    return {label:fmtDate(g.date) + ' ' + g.time, cls:'time-later'};
+}
+
+// ========================
+// FILTERS
+// ========================
+function setFilter(btn) {
+    document.querySelectorAll('#sport-filters .chip').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
-    selectedFormat = format;
+    filter = btn.dataset.f;
+    render();
 }
 
-function selectLevel(btn, level) {
-    document.querySelectorAll('.format-btn').forEach(b => {
-        if (b.parentElement === btn.parentElement) b.classList.remove('active');
-    });
+function setGender(g, btn) {
+    document.querySelectorAll('.gpill').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    selectedLevel = level;
+    genderFilter = g;
+    render();
 }
 
-function selectStake(btn, stake) {
-    document.querySelectorAll('.stake-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedStake = stake;
-    document.getElementById('custom-stake').value = '';
+function toggleTray() {
+    document.getElementById('card-tray').classList.toggle('collapsed');
 }
 
-function selectChallengeGender(btn) {
-    document.querySelectorAll('.gender-btn[data-cgender]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedChallengeGender = btn.dataset.cgender;
+// ========================
+// QUICK JOIN (1 tap!)
+// ========================
+function joinQuick(id) {
+    if (!me) { goTo('auth'); return; }
+    const g = games.find(x => x.id === id);
+    if (!g) return;
+    if (g.players.some(p => p.id === me.id)) { toast('Tashmë je brenda','err'); return; }
+    if (g.gender !== me.gender) { toast(`Vetëm ${g.gender === 'djem' ? 'djem' : 'vajza'}`,'err'); return; }
+
+    // Instant join for demo (in production: host approval)
+    g.players.push(me);
+    toast('U bashkove!','ok');
+    initChatForGame(g);
+    render();
+    // Refresh detail if open
+    if (!document.getElementById('detail-sheet').classList.contains('hidden')) openDetail(id);
 }
 
-function adjustCount(type, delta) {
-    if (type === 'have') {
-        haveCount = Math.max(1, haveCount + delta);
-        document.getElementById('have-count').textContent = haveCount;
-    } else {
-        needCount = Math.max(1, needCount + delta);
-        document.getElementById('need-count').textContent = needCount;
-    }
-}
+// ========================
+// GAME DETAIL (bottom sheet)
+// ========================
+function openDetail(id) {
+    const g = games.find(x => x.id === id);
+    if (!g) return;
 
-function createChallenge() {
-    if (!currentUser) {
-        showToast('Duhet të regjistrohesh', 'error');
-        showScreen('login-screen');
-        return;
-    }
-    if (!selectedChallengeSport) { showToast('Zgjidh sportin', 'error'); return; }
-    if (!selectedFormat) { showToast('Zgjidh formatin', 'error'); return; }
-    if (!selectedChallengeGender) { showToast('Zgjidh kush mund të luajë', 'error'); return; }
-    if (!challengeLocation) { showToast('Kliko hartën për vendndodhjen', 'error'); return; }
+    const spots = totalSpots(g) - g.players.length;
+    const isHost = me && g.host.id === me.id;
+    const isIn = me && g.players.some(p => p.id === me.id);
+    const gText = g.gender === 'djem' ? 'Djem' : 'Vajza';
+    const lvl = g.level === 'chill' ? 'Chill' : g.level === 'competitive' ? 'Kompetitiv' : 'Serioz';
+    const urgency = getUrgency(g);
 
-    const date = document.getElementById('challenge-date').value;
-    const time = document.getElementById('challenge-time').value;
-    const locationName = document.getElementById('location-name').value;
-    const note = document.getElementById('challenge-note').value;
-    const customStake = document.getElementById('custom-stake').value;
-
-    if (!date || !time) { showToast('Zgjidh datën dhe orën', 'error'); return; }
-    if (!locationName) { showToast('Shkruaj emrin e vendit', 'error'); return; }
-
-    const newChallenge = {
-        id: Date.now(),
-        sport: selectedChallengeSport,
-        format: selectedFormat,
-        have: haveCount,
-        need: needCount,
-        location: { ...challengeLocation, name: locationName },
-        date, time,
-        level: selectedLevel || 'chill',
-        stake: customStake || selectedStake || 'asgje',
-        gender: selectedChallengeGender,
-        note,
-        host: currentUser,
-        players: [currentUser],
-        status: 'active'
-    };
-
-    challenges.unshift(newChallenge);
-    showToast('Sfida u krijua!', 'success');
-
-    // Reset form
-    selectedChallengeSport = null;
-    selectedFormat = null;
-    selectedLevel = null;
-    selectedStake = null;
-    selectedChallengeGender = null;
-    haveCount = 1;
-    needCount = 1;
-    challengeLocation = null;
-    document.querySelectorAll('.create-sport-btn, .format-btn, .stake-btn, .gender-btn[data-cgender]').forEach(b => b.classList.remove('active'));
-    document.getElementById('have-count').textContent = '1';
-    document.getElementById('need-count').textContent = '1';
-    document.getElementById('location-name').value = '';
-    document.getElementById('challenge-note').value = '';
-    document.getElementById('custom-stake').value = '';
-    if (miniMapMarker) { miniMap.removeLayer(miniMapMarker); miniMapMarker = null; }
-
-    showScreen('main-screen');
-    renderChallenges();
-
-    // Add to chat list
-    addChatEntry(newChallenge);
-}
-
-// --- Challenge Detail ---
-function openChallengeDetail(id) {
-    const c = challenges.find(ch => ch.id === id);
-    if (!c) return;
-
-    const content = document.getElementById('challenge-detail-content');
-    const spotsLeft = (c.need + c.have) - c.players.length;
-    const isHost = currentUser && c.host.id === currentUser.id;
-    const isPlayer = currentUser && c.players.some(p => p.id === currentUser.id);
-    const genderText = c.gender === 'djem' ? 'Vetëm Djem' : 'Vetëm Vajza';
-
-    content.innerHTML = `
-        <div class="detail-header">
-            <div class="detail-sport-icon marker-${c.sport}" style="width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;">
-                ${sportEmojis[c.sport]}
-            </div>
+    const body = document.getElementById('detail-body');
+    body.innerHTML = `
+        <div class="detail-head">
+            <div class="detail-icon pin-${g.sport}">${SPORTS[g.sport].e}</div>
             <div>
-                <div class="detail-title">${sportNames[c.sport]} ${c.format}</div>
-                <div class="detail-format">${c.level === 'chill' ? 'Chill' : c.level === 'competitive' ? 'Kompetitiv' : 'Serioz'} — ${genderText}</div>
+                <div class="detail-title">${SPORTS[g.sport].n} ${g.format}</div>
+                <div class="detail-sub">${lvl} — ${gText} — <span class="${urgency.cls}">${urgency.label}</span></div>
             </div>
         </div>
 
-        <div class="detail-section">
-            <h4>Detajet</h4>
-            <div class="detail-row"><span>📍 Vendi</span><span>${c.location.name}</span></div>
-            <div class="detail-row"><span>📅 Data</span><span>${formatDate(c.date)}</span></div>
-            <div class="detail-row"><span>🕐 Ora</span><span>${c.time}</span></div>
-            <div class="detail-row"><span>🎯 Basti</span><span>${stakeLabels[c.stake] || c.stake}</span></div>
-            <div class="detail-row"><span>👥 Vende të lira</span><span class="spots-badge">${spotsLeft}</span></div>
-            ${c.note ? `<div class="detail-row"><span>💬 Shënim</span><span>${c.note}</span></div>` : ''}
+        <div class="detail-grid">
+            <div class="detail-item"><small>Vendi</small><b>📍 ${g.loc.name}</b></div>
+            <div class="detail-item"><small>Ora</small><b>🕐 ${fmtDate(g.date)} ${g.time}</b></div>
+            <div class="detail-item"><small>Lojtarë</small><b>👥 ${g.players.length}/${totalSpots(g)}</b></div>
+            <div class="detail-item"><small>Basti</small><b>${STAKES[g.stake] || g.stake}</b></div>
         </div>
 
-        <div class="detail-section">
-            <h4>Lojtarët (${c.players.length}/${c.have + c.need})</h4>
-            <div class="detail-players">
-                ${c.players.map((p, i) => `
-                    <div class="detail-player">
-                        <div style="width:32px;height:32px;border-radius:50%;background:var(--bg-input);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;">
-                            ${p.photo ? `<img src="${p.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` : p.name[0]}
-                        </div>
-                        <div>
-                            <div class="detail-player-name">${p.name} ${p.age ? '(' + p.age + ')' : ''}</div>
-                            <div class="detail-player-role">${i === 0 ? '🏠 Host' : '🏃 Lojtar'}</div>
-                        </div>
-                        ${p.rating ? `<span style="color:var(--warning);font-size:12px;">⭐${p.rating}</span>` : ''}
+        ${g.note ? `<p style="font-size:13px;color:var(--t2);margin-bottom:12px">💬 ${g.note}</p>` : ''}
+
+        <p class="muted">Lojtarët</p>
+        <div class="detail-players">
+            ${g.players.map((p,i) => `
+                <div class="detail-player">
+                    <div class="av">${p.photo ? `<img src="${p.photo}" style="width:28px;height:28px;border-radius:50%;object-fit:cover">` : p.name[0]}</div>
+                    <div>
+                        <b>${p.name}</b> ${p.age ? '<small>('+p.age+')</small>' : ''}
+                        <div class="role">${i===0?'🏠 Host':'🏃 Lojtar'}</div>
                     </div>
-                `).join('')}
-            </div>
+                    ${p.rating ? `<small style="color:#FFB800">⭐${p.rating}</small>` : ''}
+                </div>
+            `).join('')}
         </div>
 
         <div class="detail-actions">
-            ${!currentUser ? `<button class="btn btn-primary" onclick="closeModal(); showScreen('login-screen');">Regjistrohu për tu bashkuar</button>` :
-            isHost ? `
-                <button class="btn btn-primary" onclick="openChat(${c.id})">💬 Hap Chat</button>
-                <button class="btn btn-ghost" onclick="giveHostRole(${c.id})">Jep rolin Host</button>
-            ` :
-            isPlayer ? `
-                <button class="btn btn-primary" onclick="openChat(${c.id})">💬 Hap Chat</button>
-            ` :
-            spotsLeft > 0 ? `
-                <button class="btn btn-primary btn-large" onclick="requestJoin(${c.id})">Dua të luaj! 🏃</button>
-            ` :
-            `<button class="btn btn-ghost btn-large" disabled>Plotë</button>`
-            }
+            ${!me ? `<button class="btn-main" onclick="closeDetail();goTo('auth')">Regjistrohu</button>` :
+              isHost ? `<button class="btn-main" onclick="openChat(${g.id})">💬 Chat</button><button class="btn-outline" onclick="giveHost(${g.id})">Jep Host</button>` :
+              isIn ? `<button class="btn-main" onclick="openChat(${g.id})">💬 Chat</button>` :
+              spots > 0 ? `<button class="btn-main" onclick="joinQuick(${g.id})">Bashkohu tani!</button>` :
+              `<button class="btn-outline" disabled>Plotë</button>`}
         </div>
     `;
 
-    document.getElementById('challenge-detail').classList.remove('hidden');
+    document.getElementById('detail-overlay').classList.remove('hidden');
+    document.getElementById('detail-sheet').classList.remove('hidden');
 }
 
-function closeModal() {
-    document.getElementById('challenge-detail').classList.add('hidden');
+function closeDetail() {
+    document.getElementById('detail-overlay').classList.add('hidden');
+    document.getElementById('detail-sheet').classList.add('hidden');
 }
 
-// --- Join Challenge ---
-function requestJoin(challengeId) {
-    if (!currentUser) {
-        showScreen('login-screen');
-        return;
+function giveHost(id) {
+    const g = games.find(x => x.id === id);
+    if (!g || g.players.length < 2) return toast('Duhen 2+ lojtarë','err');
+    const others = g.players.filter(p => p.id !== g.host.id);
+    const pick = others[0]; // In production: show picker
+    g.host = pick;
+    g.players = [pick, ...g.players.filter(p => p.id !== pick.id)];
+    toast(`${pick.name} është host!`,'ok');
+    openDetail(id); // refresh
+}
+
+// ========================
+// CREATE CHALLENGE (wizard)
+// ========================
+let wizStep = 1;
+
+function resetWizard() {
+    wizStep = 1;
+    cf = {sport:null,format:null,cgender:null,stake:'asgje',have:1,need:1,loc:null};
+    document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('active'));
+    document.querySelector('.wiz-step[data-step="1"]').classList.add('active');
+    // Reset UI
+    document.querySelectorAll('#create .sport-chip, #create .pill, #create .stake').forEach(b => b.classList.remove('on','active'));
+    document.querySelector('.stake[onclick*="asgje"]').classList.add('active');
+    document.getElementById('c-have').textContent = '1';
+    document.getElementById('c-need').textContent = '1';
+    document.getElementById('c-location').value = '';
+    document.getElementById('c-note').value = '';
+    const dateInp = document.getElementById('c-date');
+    if (dateInp) dateInp.value = today;
+}
+
+function pickCreate(btn, type) {
+    if (type === 'sport') {
+        btn.closest('.sport-pick-grid').querySelectorAll('.sport-chip').forEach(c => c.classList.remove('on'));
+        btn.classList.add('on');
+        cf.sport = btn.dataset.s;
+    }
+}
+
+function pickStake(btn, val) {
+    document.querySelectorAll('.stake').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    cf.stake = val;
+}
+
+function adj(type, d) {
+    if (type === 'have') { cf.have = Math.max(1, cf.have + d); document.getElementById('c-have').textContent = cf.have; }
+    else { cf.need = Math.max(1, cf.need + d); document.getElementById('c-need').textContent = cf.need; }
+}
+
+function wizNext() {
+    // Validate current step
+    if (wizStep === 1) {
+        if (!cf.sport) return toast('Zgjidh sportin','err');
+        if (!cf.format) return toast('Zgjidh formatin','err');
+        if (!cf.cgender) return toast('Zgjidh djem/vajza','err');
+    }
+    if (wizStep === 2) {
+        if (!document.getElementById('c-date').value) return toast('Zgjidh datën','err');
+        if (!document.getElementById('c-time').value) return toast('Zgjidh orën','err');
+        if (!cf.loc) return toast('Kliko hartën','err');
+        if (!document.getElementById('c-location').value) return toast('Shkruaj vendin','err');
     }
 
-    const c = challenges.find(ch => ch.id === challengeId);
-    if (!c) return;
+    wizStep++;
+    document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('active'));
+    const next = document.querySelector(`.wiz-step[data-step="${wizStep}"]`);
+    if (next) next.classList.add('active');
+}
 
-    // Check gender match
-    if (c.gender !== currentUser.gender) {
-        showToast(`Kjo sfidë është vetëm për ${c.gender === 'djem' ? 'djem' : 'vajza'}`, 'error');
-        return;
+function publishChallenge() {
+    if (!me) { toast('Regjistrohu','err'); goTo('auth'); return; }
+
+    const g = {
+        id: Date.now(),
+        sport: cf.sport,
+        format: cf.format,
+        have: cf.have,
+        need: cf.need,
+        loc: {...cf.loc, name: document.getElementById('c-location').value},
+        date: document.getElementById('c-date').value,
+        time: document.getElementById('c-time').value,
+        level: 'chill',
+        stake: cf.stake,
+        gender: cf.cgender,
+        note: document.getElementById('c-note').value,
+        host: me,
+        players: [me],
+        status: 'active'
+    };
+
+    games.unshift(g);
+    initChatForGame(g);
+    toast('Sfida u publikua!','ok');
+    goTo('home');
+}
+
+// ========================
+// CHAT
+// ========================
+function initChatForGame(g) {
+    if (!chatData[g.id]) {
+        chatData[g.id] = [{type:'sys', text:`${SPORTS[g.sport].e} Sfida u krijua!`, t: new Date()}];
+    }
+}
+
+function openChat(gId) {
+    const g = games.find(x => x.id === gId);
+    if (!g) return;
+    closeDetail();
+
+    document.getElementById('chat-title').textContent = `${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}`;
+    document.getElementById('chat-sub').textContent = `${g.loc.name} — ${fmtDate(g.date)} ${g.time}`;
+
+    initChatForGame(g);
+
+    // Add demo msgs for demo games
+    if (g.id <= 6 && chatData[g.id].length <= 1) {
+        if (g.players.length > 1)
+            chatData[g.id].push({type:'in',who:g.players[1].name,text:'Po vij në orë!',t:new Date(now.getTime()-3600000)});
+        chatData[g.id].push({type:'in',who:g.host.name,text:g.note||'Mirë se vini!',t:new Date(now.getTime()-1800000)});
     }
 
-    // Simulate host accepting (in demo)
-    showToast('Kërkesa u dërgua te hosti!', 'success');
-    closeModal();
+    renderChat(gId);
+    goTo('chat');
+    document.getElementById('chat-msgs').dataset.gid = gId;
+}
 
-    // Demo: auto-accept after 2 seconds
+function renderChat(gId) {
+    const el = document.getElementById('chat-msgs');
+    const msgs = chatData[gId] || [];
+    el.innerHTML = msgs.map(m => {
+        if (m.type === 'sys') return `<div class="msg msg-sys">${m.text}</div>`;
+        const mine = me && m.who === me.name;
+        return `<div class="msg ${mine ? 'msg-out' : 'msg-in'}">
+            ${!mine ? `<div class="msg-name">${m.who}</div>` : ''}
+            ${m.text}
+            <div class="msg-time">${fmtTime(m.t)}</div>
+        </div>`;
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+}
+
+function sendMsg() {
+    const inp = document.getElementById('chat-inp');
+    const text = inp.value.trim();
+    if (!text) return;
+    const gId = parseInt(document.getElementById('chat-msgs').dataset.gid);
+    if (!chatData[gId]) chatData[gId] = [];
+    chatData[gId].push({type:'out',who:me?me.name:'Ti',text,t:new Date()});
+    inp.value = '';
+    renderChat(gId);
+
+    // Demo auto-reply
     setTimeout(() => {
-        const challenge = challenges.find(ch => ch.id === challengeId);
-        if (challenge && !challenge.players.some(p => p.id === currentUser.id)) {
-            challenge.players.push(currentUser);
-            showToast(`${challenge.host.name} të pranoi! 🎉`, 'success');
-            renderChallenges();
-            addChatEntry(challenge);
-        }
-    }, 2000);
+        const g = games.find(x => x.id === gId);
+        if (!g) return;
+        const other = g.players.find(p => !me || p.id !== me.id) || g.host;
+        const replies = ['OK!','Po vij!','Bukur!','Perfekt 👍','Dakord!','Se shpejti!'];
+        chatData[gId].push({type:'in',who:other.name,text:replies[Math.floor(Math.random()*replies.length)],t:new Date()});
+        renderChat(gId);
+    }, 1500 + Math.random()*2000);
 }
 
-// --- Host Role ---
-function giveHostRole(challengeId) {
-    const c = challenges.find(ch => ch.id === challengeId);
-    if (!c || c.players.length < 2) {
-        showToast('Duhen të paktën 2 lojtarë', 'error');
-        return;
-    }
+function quickMsg(t) { document.getElementById('chat-inp').value = t; sendMsg(); }
 
-    // Show selection of players to promote
-    const otherPlayers = c.players.filter(p => p.id !== c.host.id);
-    const playerList = otherPlayers.map(p => `
-        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-input);border-radius:12px;cursor:pointer;margin-top:8px;"
-             onclick="promoteToHost(${c.id}, ${p.id})">
-            <div style="width:40px;height:40px;border-radius:50%;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-weight:700;">
-                ${p.name[0]}
+// ========================
+// MY GAMES TAB
+// ========================
+function renderMyGames() {
+    const el = document.getElementById('my-list');
+    if (!me) { el.innerHTML = '<div class="empty">Regjistrohu për të parë sfidat</div>'; return; }
+    const my = games.filter(g => g.players.some(p => p.id === me.id));
+    if (!my.length) { el.innerHTML = '<div class="empty">Nuk ke sfida<br><br><button class="btn-main" style="max-width:200px;margin:0 auto" onclick="goTo(\'create\')">Krijo sfidën e parë</button></div>'; return; }
+    el.innerHTML = my.map(g => {
+        const isHost = g.host.id === me.id;
+        const spots = totalSpots(g) - g.players.length;
+        const urgency = getUrgency(g);
+        return `<div class="gcard" onclick="openDetail(${g.id})">
+            <div class="gcard-top">
+                <div class="gcard-sport">
+                    ${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}
+                    <span style="color:var(--c);font-size:11px;font-weight:700">${isHost ? '🏠 HOST' : '🏃'}</span>
+                </div>
+                <span class="gcard-time ${urgency.cls}">${urgency.label}</span>
             </div>
-            <div>
-                <div style="font-weight:700;">${p.name}</div>
-                <div style="color:var(--text-secondary);font-size:12px;">⭐${p.rating || '5.0'}</div>
+            <div class="gcard-mid">
+                <span>📍 ${g.loc.name}</span>
+                <span class="spots">${g.players.length}/${totalSpots(g)}</span>
             </div>
+        </div>`;
+    }).join('');
+}
+
+// ========================
+// CHAT LIST TAB
+// ========================
+function renderChatList() {
+    const el = document.getElementById('chats-list');
+    const items = Object.keys(chatData).map(id => {
+        const g = games.find(x => x.id === parseInt(id));
+        if (!g) return null;
+        const msgs = chatData[id];
+        const last = msgs[msgs.length - 1];
+        return {g, last};
+    }).filter(Boolean);
+
+    if (!items.length) { el.innerHTML = '<div class="empty">Nuk ke biseda akoma</div>'; return; }
+    el.innerHTML = items.map(({g, last}) => `
+        <div class="chat-item" onclick="openChat(${g.id})">
+            <div class="ci-icon pin-${g.sport}">${SPORTS[g.sport].e}</div>
+            <div class="ci-info">
+                <div class="ci-name">${SPORTS[g.sport].n} ${g.format}</div>
+                <div class="ci-last">${last.who ? last.who+': ' : ''}${last.text}</div>
+            </div>
+            <div class="ci-time">${fmtTime(last.t)}</div>
         </div>
     `).join('');
-
-    document.getElementById('challenge-detail-content').innerHTML += `
-        <div class="detail-section">
-            <h4>Zgjidh hostin e ri</h4>
-            ${playerList}
-        </div>
-    `;
 }
 
-function promoteToHost(challengeId, playerId) {
-    const c = challenges.find(ch => ch.id === challengeId);
-    if (!c) return;
-    const newHost = c.players.find(p => p.id === playerId);
-    if (!newHost) return;
-
-    c.host = newHost;
-    // Reorder: host first
-    c.players = [newHost, ...c.players.filter(p => p.id !== playerId)];
-    showToast(`${newHost.name} është tani hosti!`, 'success');
-    closeModal();
-    renderChallenges();
-}
-
-// --- Chat ---
-const chatMessages = {};
-
-function addChatEntry(challenge) {
-    if (!chatMessages[challenge.id]) {
-        chatMessages[challenge.id] = [
-            { type: 'system', text: `${sportEmojis[challenge.sport]} Sfida u krijua!`, time: new Date() }
-        ];
-    }
-}
-
-function openChat(challengeId) {
-    const c = challenges.find(ch => ch.id === challengeId);
-    if (!c) return;
-
-    closeModal();
-    document.getElementById('chat-title').textContent = `${sportEmojis[c.sport]} ${sportNames[c.sport]} ${c.format}`;
-    document.getElementById('chat-subtitle').textContent = `${c.location.name} — ${formatDate(c.date)} ${c.time}`;
-
-    // Initialize chat if needed
-    if (!chatMessages[c.id]) {
-        chatMessages[c.id] = [
-            { type: 'system', text: `${sportEmojis[c.sport]} Sfida u krijua!`, time: new Date() }
-        ];
-    }
-
-    // Add demo messages for existing challenges
-    if (c.id <= 6 && chatMessages[c.id].length <= 1) {
-        const demoMsgs = getDemoMessages(c);
-        chatMessages[c.id].push(...demoMsgs);
-    }
-
-    renderChatMessages(c.id);
-    showScreen('chat-screen');
-
-    // Store current chat id
-    document.getElementById('chat-messages').dataset.challengeId = c.id;
-}
-
-function getDemoMessages(c) {
-    const msgs = [];
-    if (c.players.length > 1) {
-        msgs.push({
-            type: 'other', sender: c.players[1].name,
-            text: 'Përshëndetje! Po vij në orë!',
-            time: new Date(Date.now() - 3600000)
-        });
-    }
-    msgs.push({
-        type: 'other', sender: c.host.name,
-        text: c.note || 'Mirë se vini!',
-        time: new Date(Date.now() - 1800000)
-    });
-    return msgs;
-}
-
-function renderChatMessages(challengeId) {
-    const container = document.getElementById('chat-messages');
-    const msgs = chatMessages[challengeId] || [];
-
-    container.innerHTML = msgs.map(m => {
-        if (m.type === 'system') {
-            return `<div class="chat-msg chat-msg-system">${m.text}</div>`;
-        }
-        const isMine = currentUser && m.sender === currentUser.name;
-        return `
-            <div class="chat-msg ${isMine ? 'chat-msg-mine' : 'chat-msg-other'}">
-                ${!isMine ? `<div class="chat-msg-sender">${m.sender}</div>` : ''}
-                ${m.text}
-                <div class="chat-msg-time">${formatTime(m.time)}</div>
-            </div>
-        `;
-    }).join('');
-
-    container.scrollTop = container.scrollHeight;
-}
-
-function sendMessage() {
-    const input = document.getElementById('chat-input');
-    const text = input.value.trim();
-    if (!text) return;
-
-    const challengeId = parseInt(document.getElementById('chat-messages').dataset.challengeId);
-    if (!chatMessages[challengeId]) chatMessages[challengeId] = [];
-
-    chatMessages[challengeId].push({
-        type: 'mine',
-        sender: currentUser ? currentUser.name : 'Ti',
-        text,
-        time: new Date()
-    });
-
-    input.value = '';
-    renderChatMessages(challengeId);
-
-    // Demo: auto-reply
-    setTimeout(() => {
-        const c = challenges.find(ch => ch.id === challengeId);
-        if (c && c.players.length > 0) {
-            const responder = c.players.find(p => !currentUser || p.id !== currentUser.id) || c.host;
-            const replies = ['OK!', 'Po vij!', 'Bukur!', 'Perfekt 👍', 'Dakord!', 'Se shpejti!'];
-            chatMessages[challengeId].push({
-                type: 'other',
-                sender: responder.name,
-                text: replies[Math.floor(Math.random() * replies.length)],
-                time: new Date()
-            });
-            renderChatMessages(challengeId);
-        }
-    }, 1500 + Math.random() * 2000);
-}
-
-function sendQuickMsg(text) {
-    document.getElementById('chat-input').value = text;
-    sendMessage();
-}
-
-// --- Tab Navigation ---
-function switchTab(tab, btn) {
-    // Update nav buttons across all screens
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-
-    switch(tab) {
-        case 'map':
-            showScreen('main-screen');
-            break;
-        case 'challenges':
-            showScreen('challenges-tab-screen');
-            renderMyChallenges();
-            break;
-        case 'chat':
-            showScreen('chat-list-screen');
-            renderChatList();
-            break;
-        case 'profile':
-            if (!currentUser) {
-                showScreen('login-screen');
-            } else {
-                showScreen('profile-screen');
-                updateProfileDisplay();
-            }
-            break;
-    }
-}
-
-function renderMyChallenges() {
-    const list = document.getElementById('my-challenges-list');
-    if (!currentUser) {
-        list.innerHTML = '<div class="empty-state"><p>Regjistrohu për të parë sfidat e tua</p></div>';
-        return;
-    }
-
-    const myChallenges = challenges.filter(c =>
-        c.players.some(p => p.id === currentUser.id)
-    );
-
-    if (myChallenges.length === 0) {
-        list.innerHTML = `
-            <div class="empty-state">
-                <p>Nuk ke sfida akoma</p>
-                <button class="btn btn-primary" onclick="showScreen('create-challenge-screen')">Krijo sfidën e parë</button>
-            </div>
-        `;
-        return;
-    }
-
-    list.innerHTML = myChallenges.map(c => {
-        const isHost = c.host.id === currentUser.id;
-        const spotsLeft = (c.need + c.have) - c.players.length;
-        return `
-            <div class="challenge-card" onclick="openChallengeDetail(${c.id})">
-                <div class="challenge-card-top">
-                    <span class="challenge-sport-badge badge-${c.sport}">${sportEmojis[c.sport]} ${sportNames[c.sport]}</span>
-                    <span style="color:${isHost ? 'var(--primary)' : 'var(--text-secondary)'};font-weight:700;font-size:12px;">
-                        ${isHost ? '🏠 HOST' : '🏃 LOJTAR'}
-                    </span>
-                </div>
-                <div class="challenge-card-info">
-                    <span>📍 ${c.location.name}</span>
-                    <span>🕐 ${formatDate(c.date)} — ${c.time} — ${c.format}</span>
-                </div>
-                <div class="challenge-card-bottom">
-                    <span class="challenge-stake">${stakeLabels[c.stake] || c.stake}</span>
-                    <span class="spots-badge">${spotsLeft} vende</span>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function renderChatList() {
-    const list = document.getElementById('chat-list');
-
-    const chatsWithMessages = Object.keys(chatMessages).map(id => {
-        const c = challenges.find(ch => ch.id === parseInt(id));
-        const msgs = chatMessages[id];
-        const lastMsg = msgs[msgs.length - 1];
-        return { challenge: c, lastMsg, id: parseInt(id) };
-    }).filter(item => item.challenge);
-
-    if (chatsWithMessages.length === 0) {
-        list.innerHTML = `
-            <div class="empty-state">
-                <p>Nuk ke biseda akoma</p>
-                <p class="subtitle">Bashkohu në një sfidë për të filluar bisedën</p>
-            </div>
-        `;
-        return;
-    }
-
-    list.innerHTML = chatsWithMessages.map(item => {
-        const c = item.challenge;
-        const last = item.lastMsg;
-        return `
-            <div class="chat-list-item" onclick="openChat(${c.id})">
-                <div class="chat-list-icon marker-${c.sport}">${sportEmojis[c.sport]}</div>
-                <div class="chat-list-info">
-                    <div class="chat-list-name">${sportNames[c.sport]} ${c.format}</div>
-                    <div class="chat-list-last">${last.sender ? last.sender + ': ' : ''}${last.text}</div>
-                </div>
-                <div class="chat-list-time">${formatTime(last.time)}</div>
-            </div>
-        `;
-    }).join('');
-}
-
-function showChallengeTab(tab, btn) {
-    document.querySelectorAll('.ctab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    // For demo, all tabs show same content
-    renderMyChallenges();
-}
-
-// --- Profile ---
-function updateProfileDisplay() {
-    if (!currentUser) return;
-
-    const photoDisplay = document.getElementById('profile-photo-display');
-    if (currentUser.photo) {
-        photoDisplay.innerHTML = `<img src="${currentUser.photo}">`;
-    } else {
-        photoDisplay.textContent = currentUser.name ? currentUser.name[0] : '?';
-    }
-
-    document.getElementById('profile-name-display').textContent = currentUser.name;
-    document.getElementById('profile-meta-display').textContent = `${currentUser.age} vjeç • ${currentUser.lagja}`;
-    document.getElementById('stat-played').textContent = currentUser.matches;
-    document.getElementById('stat-wins').textContent = currentUser.wins;
-    document.getElementById('stat-losses').textContent = currentUser.losses;
-
-    const sportsDisplay = document.getElementById('profile-sports-display');
-    if (currentUser.sports) {
-        sportsDisplay.innerHTML = currentUser.sports.map(s =>
-            `<span class="profile-sport-tag">${sportEmojis[s.sport]} ${sportNames[s.sport]} — ${s.skill}</span>`
-        ).join('');
-    }
+// ========================
+// PROFILE
+// ========================
+function updateProfile() {
+    if (!me) return;
+    const av = document.getElementById('prof-avatar');
+    av.innerHTML = me.photo ? `<img src="${me.photo}">` : me.name[0];
+    document.getElementById('prof-name').textContent = me.name;
+    document.getElementById('prof-meta').textContent = `${me.age} vjeç · ${me.lagja}`;
+    document.getElementById('s-played').textContent = me.matches;
+    document.getElementById('s-wins').textContent = me.wins;
+    document.getElementById('s-losses').textContent = me.losses;
+    const sp = document.getElementById('prof-sports');
+    sp.innerHTML = (me.sports||[]).map(s => `<span class="chip">${SPORTS[s]?.e||''} ${SPORTS[s]?.n||s}</span>`).join('');
 }
 
 function logout() {
-    localStorage.removeItem('sfida_user');
-    currentUser = null;
-    showScreen('splash-screen');
-    showToast('U çkyçe me sukses', 'success');
+    localStorage.removeItem('sf_me');
+    me = null;
+    toast('U çkyçe','ok');
+    goTo('splash');
 }
 
-// --- Utilities ---
-function formatDate(dateStr) {
-    // Parse as local date to avoid UTC offset issues
-    const parts = dateStr.split('-');
-    const d = new Date(parts[0], parts[1] - 1, parts[2]);
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+// ========================
+// UTILITIES
+// ========================
+function fmtDate(str) {
+    const p = str.split('-');
+    const d = new Date(p[0], p[1]-1, p[2]);
+    const t = new Date(); t.setHours(0,0,0,0);
+    const tm = new Date(t); tm.setDate(tm.getDate()+1);
     d.setHours(0,0,0,0);
-
-    if (d.getTime() === today.getTime()) return 'Sot';
-    if (d.getTime() === tomorrow.getTime()) return 'Nesër';
-
-    const months = ['Jan', 'Shk', 'Mar', 'Pri', 'Maj', 'Qer', 'Kor', 'Gus', 'Sht', 'Tet', 'Nën', 'Dhj'];
-    return `${d.getDate()} ${months[d.getMonth()]}`;
+    if (d.getTime()===t.getTime()) return 'Sot';
+    if (d.getTime()===tm.getTime()) return 'Nesër';
+    const m = ['Jan','Shk','Mar','Pri','Maj','Qer','Kor','Gus','Sht','Tet','Nën','Dhj'];
+    return `${d.getDate()} ${m[d.getMonth()]}`;
 }
 
-function formatTime(date) {
-    if (!(date instanceof Date)) date = new Date(date);
-    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+function fmtTime(d) {
+    if (!(d instanceof Date)) d = new Date(d);
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 
-function showToast(message, type = '') {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.className = `toast ${type}`;
-    setTimeout(() => toast.classList.add('hidden'), 2500);
+function toast(msg, type) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast show ${type||''}`;
+    setTimeout(() => el.className = 'toast', 2500);
 }
 
-// --- Initialize demo chat entries ---
-demoChallenges.forEach(c => addChatEntry(c));
+// ========================
+// INIT
+// ========================
+document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('sf_me');
+    if (saved) {
+        me = JSON.parse(saved);
+        goTo('home');
+    }
+    document.getElementById('c-date').value = today;
+});
