@@ -85,16 +85,35 @@ demoGames.forEach(g => {
 // ========================
 // NAVIGATION
 // ========================
+let mapVisible = false;
+
 function goTo(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const el = document.getElementById(id);
     if (el) {
         el.classList.add('active');
-        if (id === 'home') { renderCards(); setTimeout(initMap, 80); }
+        if (id === 'home') { renderCards(); if (mapVisible) setTimeout(initMap, 80); }
         if (id === 'create') { setTimeout(initMiniMap, 150); resetWizard(); }
         if (id === 'profile') updateProfile();
         if (id === 'my') renderMyGames();
         if (id === 'chats') renderChatList();
+    }
+}
+
+function toggleMapView() {
+    mapVisible = !mapVisible;
+    const mapEl = document.getElementById('map');
+    const feedEl = document.getElementById('feed');
+    const toggleBtn = document.getElementById('map-toggle');
+    if (mapVisible) {
+        mapEl.classList.remove('map-hidden');
+        feedEl.style.display = 'none';
+        toggleBtn.classList.add('active');
+        setTimeout(initMap, 80);
+    } else {
+        mapEl.classList.add('map-hidden');
+        feedEl.style.display = '';
+        toggleBtn.classList.remove('active');
     }
 }
 
@@ -275,12 +294,24 @@ function render() {
 function renderCards() {
     const list = getFiltered();
     const el = document.getElementById('card-list');
+
+    // Feed status
+    const statusEl = document.getElementById('feed-status');
+    if (statusEl) {
+        if (filter !== 'all') {
+            statusEl.textContent = `${list.length} ${SPORTS[filter]?.n || ''} sfida`;
+        } else {
+            statusEl.textContent = `${list.length} sfida aktive`;
+        }
+    }
+
     if (!list.length) { el.innerHTML = ''; return; }
 
     el.innerHTML = list.map(g => {
         const spots = totalSpots(g) - g.players.length;
         const full = spots <= 0;
         const urgency = getUrgency(g);
+        const spotsText = spots === 1 ? '1 vend i lirë' : `${spots} vende të lira`;
         return `
         <div class="gcard" onclick="openDetail(${g.id})">
             <div class="gcard-top">
@@ -301,7 +332,7 @@ function renderCards() {
                     ${g.host.name} <span style="color:var(--warn)">★${g.host.rating}</span>
                 </div>
                 <button class="gcard-join ${full ? 'gcard-full' : ''}" onclick="event.stopPropagation();${full ? '' : `joinQuick(${g.id})`}">
-                    ${full ? 'Plotë' : 'Bashkohu'}
+                    ${full ? 'Plotë' : `Bashkohu · ${spotsText}`}
                 </button>
             </div>
         </div>`;
@@ -325,13 +356,15 @@ function getUrgency(g) {
     const [h, m] = g.time.split(':').map(Number);
     gameDate.setHours(h, m);
     const diff = gameDate - new Date();
-    const hrs = diff / 3600000;
+    const mins = diff / 60000;
+    const hrs = mins / 60;
 
-    if (hrs < 0) return {label:'Tani!', cls:'time-urgent'};
-    if (hrs < 2) return {label:`${Math.max(1,Math.round(hrs*60))} min`, cls:'time-urgent'};
-    if (hrs < 6) return {label:`${Math.round(hrs)} orë`, cls:'time-soon'};
-    if (hrs < 24) return {label:fmtDate(g.date) + ' ' + g.time, cls:'time-later'};
-    return {label:fmtDate(g.date) + ' ' + g.time, cls:'time-later'};
+    if (mins < 0) return {label:'LIVE', cls:'time-urgent'};
+    if (mins < 60) return {label:`Në ${Math.max(1,Math.round(mins))}min`, cls:'time-urgent'};
+    if (hrs < 3) return {label:`Në ${Math.round(hrs)}h`, cls:'time-urgent'};
+    if (hrs < 8) return {label:`Në ${Math.round(hrs)}h`, cls:'time-soon'};
+    if (hrs < 24) return {label:`Sot ${g.time}`, cls:'time-later'};
+    return {label:`${fmtDate(g.date)} ${g.time}`, cls:'time-later'};
 }
 
 // ========================
@@ -352,7 +385,7 @@ function setGender(g, btn) {
 }
 
 function toggleTray() {
-    document.getElementById('card-tray').classList.toggle('collapsed');
+    // Legacy — no longer used in feed-first layout
 }
 
 // ========================
