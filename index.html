@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0A0A0A">
+    <meta name="theme-color" content="#0F0F0F">
     <title>Sfida</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -18,35 +18,53 @@
 <!-- ====== SPLASH ====== -->
 <div id="splash" class="screen active">
     <div class="splash-inner">
+        <div class="splash-glow"></div>
         <h1 class="brand">SFIDA</h1>
         <p class="brand-sub">Gjej lojtarë. Sfido. Fito.</p>
-        <button class="btn-main" onclick="goTo('auth')">Fillo tani</button>
-        <button class="btn-link" onclick="goTo('home')">Shiko pa llogari</button>
+        <button class="btn-primary" onclick="goTo('auth')">Fillo tani</button>
+        <button class="btn-ghost" onclick="goTo('home')">Shiko pa llogari</button>
     </div>
 </div>
 
 <!-- ====== AUTH ====== -->
 <div id="auth" class="screen">
     <div class="sheet">
-        <button class="back" onclick="goTo('splash')">&larr;</button>
-        <h2>Hyr ose Regjistrohu</h2>
+        <button class="btn-back" onclick="goTo('splash')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h2 class="heading-lg">Hyr ose Regjistrohu</h2>
 
         <!-- Login -->
         <div id="auth-login">
-            <input type="email" id="inp-email" placeholder="Email" autocomplete="email">
-            <input type="password" id="inp-pass" placeholder="Fjalëkalimi" autocomplete="current-password">
-            <button class="btn-main" onclick="doLogin()">Hyr</button>
+            <div class="input-group">
+                <label class="input-label">Email</label>
+                <input type="email" id="inp-email" placeholder="email@shembull.com" autocomplete="email">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Fjalëkalimi</label>
+                <input type="password" id="inp-pass" placeholder="Shkruaj fjalëkalimin" autocomplete="current-password">
+            </div>
+            <button class="btn-primary" onclick="doLogin()">Hyr</button>
             <div class="divider"><span>ose</span></div>
             <button class="btn-outline" onclick="showReg()">Krijo llogari</button>
         </div>
 
         <!-- Register (toggled) -->
         <div id="auth-reg" class="hidden">
-            <input type="email" id="inp-reg-email" placeholder="Email" autocomplete="email">
-            <input type="password" id="inp-reg-pass" placeholder="Fjalëkalimi (min 6)" autocomplete="new-password">
-            <input type="password" id="inp-reg-pass2" placeholder="Konfirmo fjalëkalimin" autocomplete="new-password">
-            <button class="btn-main" onclick="doRegister()">Vazhdo</button>
-            <button class="btn-link" onclick="showLogin()">Kam llogari, hyr</button>
+            <div class="input-group">
+                <label class="input-label">Email</label>
+                <input type="email" id="inp-reg-email" placeholder="email@shembull.com" autocomplete="email">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Fjalëkalimi</label>
+                <input type="password" id="inp-reg-pass" placeholder="Min 6 karaktere" autocomplete="new-password">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Konfirmo</label>
+                <input type="password" id="inp-reg-pass2" placeholder="Konfirmo fjalëkalimin" autocomplete="new-password">
+            </div>
+            <button class="btn-primary" onclick="doRegister()">Vazhdo</button>
+            <button class="btn-ghost" onclick="showLogin()">Kam llogari, hyr</button>
         </div>
     </div>
 </div>
@@ -54,34 +72,44 @@
 <!-- ====== PROFILE SETUP ====== -->
 <div id="setup" class="screen">
     <div class="sheet">
-        <h2>Profili yt</h2>
-        <p class="muted">Plotëso për të filluar</p>
+        <h2 class="heading-lg">Profili yt</h2>
+        <p class="text-muted">Plotëso për të filluar</p>
 
         <div class="avatar-pick" onclick="document.getElementById('file-photo').click()">
             <div id="avatar-preview">📷</div>
             <input type="file" id="file-photo" accept="image/*" class="hidden" onchange="onPhoto(this)">
         </div>
 
-        <input type="text" id="inp-name" placeholder="Emri">
-        <input type="number" id="inp-age" placeholder="Mosha (min 16)" min="16" max="99">
+        <div class="input-group">
+            <label class="input-label">Emri</label>
+            <input type="text" id="inp-name" placeholder="Emri yt">
+        </div>
+        <div class="input-group">
+            <label class="input-label">Mosha</label>
+            <input type="number" id="inp-age" placeholder="Min 16" min="16" max="99">
+        </div>
 
+        <label class="input-label">Gjinia</label>
         <div class="pill-row">
             <button class="pill" data-v="djem" onclick="pickPill(this,'gender')">Djalë</button>
             <button class="pill" data-v="vajza" onclick="pickPill(this,'gender')">Vajzë</button>
         </div>
 
-        <select id="inp-lagja">
-            <option value="">Lagja</option>
-            <option>Blloku</option><option>Astiri</option><option>Komuna e Parisit</option>
-            <option>Laprakë</option><option>Kamëz</option><option>21 Dhjetori</option>
-            <option>Selitë</option><option>Medreseja</option><option>Kinostudio</option>
-            <option>Sauk</option><option>Tirana e Re</option><option>Kombinat</option>
-            <option>Yzberisht</option><option>Porcelan</option><option>Fresk</option>
-            <option>Shkozë</option><option>Ali Demi</option><option>Kodra e Diellit</option>
-        </select>
+        <div class="input-group">
+            <label class="input-label">Lagja</label>
+            <select id="inp-lagja">
+                <option value="">Zgjidh lagjën</option>
+                <option>Blloku</option><option>Astiri</option><option>Komuna e Parisit</option>
+                <option>Laprakë</option><option>Kamëz</option><option>21 Dhjetori</option>
+                <option>Selitë</option><option>Medreseja</option><option>Kinostudio</option>
+                <option>Sauk</option><option>Tirana e Re</option><option>Kombinat</option>
+                <option>Yzberisht</option><option>Porcelan</option><option>Fresk</option>
+                <option>Shkozë</option><option>Ali Demi</option><option>Kodra e Diellit</option>
+            </select>
+        </div>
 
-        <p class="muted" style="margin-top:12px;">Sportet (zgjidh 1+)</p>
-        <div class="sport-pick-grid">
+        <label class="input-label">Sportet (zgjidh 1+)</label>
+        <div class="sport-grid">
             <button class="sport-chip" data-s="futboll" onclick="toggleChip(this)">⚽ Futboll</button>
             <button class="sport-chip" data-s="basketboll" onclick="toggleChip(this)">🏀 Basketboll</button>
             <button class="sport-chip" data-s="pingpong" onclick="toggleChip(this)">🏓 Ping Pong</button>
@@ -90,7 +118,7 @@
             <button class="sport-chip" data-s="badminton" onclick="toggleChip(this)">🏸 Badminton</button>
         </div>
 
-        <button class="btn-main" onclick="finishSetup()">Fillo!</button>
+        <button class="btn-primary" onclick="finishSetup()">Fillo!</button>
     </div>
 </div>
 
@@ -98,15 +126,24 @@
 <div id="home" class="screen">
     <!-- Top: filters -->
     <header class="topbar">
-        <span class="brand-sm">SFIDA</span>
+        <div class="topbar-row">
+            <span class="brand-sm">SFIDA</span>
+            <div class="topbar-right">
+                <div class="gender-pills">
+                    <button class="gpill active" onclick="setGender('all',this)">Te gjithë</button>
+                    <button class="gpill" onclick="setGender('djem',this)">Djem</button>
+                    <button class="gpill" onclick="setGender('vajza',this)">Vajza</button>
+                </div>
+            </div>
+        </div>
         <div class="filters" id="sport-filters">
             <button class="chip active" data-f="all" onclick="setFilter(this)">Te gjitha</button>
-            <button class="chip" data-f="futboll" onclick="setFilter(this)">⚽</button>
-            <button class="chip" data-f="basketboll" onclick="setFilter(this)">🏀</button>
-            <button class="chip" data-f="pingpong" onclick="setFilter(this)">🏓</button>
-            <button class="chip" data-f="volejboll" onclick="setFilter(this)">🏐</button>
-            <button class="chip" data-f="tenis" onclick="setFilter(this)">🎾</button>
-            <button class="chip" data-f="badminton" onclick="setFilter(this)">🏸</button>
+            <button class="chip" data-f="futboll" onclick="setFilter(this)">⚽ Futboll</button>
+            <button class="chip" data-f="basketboll" onclick="setFilter(this)">🏀 Basket</button>
+            <button class="chip" data-f="pingpong" onclick="setFilter(this)">🏓 Ping Pong</button>
+            <button class="chip" data-f="volejboll" onclick="setFilter(this)">🏐 Volejboll</button>
+            <button class="chip" data-f="tenis" onclick="setFilter(this)">🎾 Tenis</button>
+            <button class="chip" data-f="badminton" onclick="setFilter(this)">🏸 Badminton</button>
         </div>
     </header>
 
@@ -117,25 +154,35 @@
     <div class="card-tray" id="card-tray">
         <div class="tray-handle" onclick="toggleTray()"><span></span></div>
         <div class="tray-header">
-            <h3 id="tray-title">Sfidat aktive</h3>
-            <div class="gender-pills">
-                <button class="gpill active" onclick="setGender('all',this)">Te gjithë</button>
-                <button class="gpill" onclick="setGender('djem',this)">Djem</button>
-                <button class="gpill" onclick="setGender('vajza',this)">Vajza</button>
-            </div>
+            <h3 class="heading-sm" id="tray-title">Sfidat aktive</h3>
         </div>
         <div id="card-list" class="card-list"></div>
     </div>
 
     <!-- FAB: Create -->
-    <button class="fab" id="fab-create" onclick="goTo('create')">+ Krijo</button>
+    <button class="fab" id="fab-create" onclick="goTo('create')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span>Krijo</span>
+    </button>
 
-    <!-- Bottom nav (single instance) -->
+    <!-- Bottom nav -->
     <nav class="nav" id="main-nav">
-        <button class="nav-item active" onclick="navTo('home',this)"><span>🗺️</span>Harta</button>
-        <button class="nav-item" onclick="navTo('my',this)"><span>⚡</span>Sfidat</button>
-        <button class="nav-item" onclick="navTo('chats',this)"><span>💬</span>Chat</button>
-        <button class="nav-item" onclick="navTo('profile',this)"><span>👤</span>Profili</button>
+        <button class="nav-item active" onclick="navTo('home',this)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+            <span>Home</span>
+        </button>
+        <button class="nav-item" onclick="navTo('my',this)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <span>Sfidat</span>
+        </button>
+        <button class="nav-item" onclick="navTo('chats',this)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <span>Chat</span>
+        </button>
+        <button class="nav-item" onclick="navTo('profile',this)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Profili</span>
+        </button>
     </nav>
 </div>
 
@@ -143,15 +190,26 @@
 <div id="create" class="screen">
     <div class="sheet sheet-full">
         <div class="sheet-top">
-            <button class="back" onclick="goTo('home')">&larr;</button>
-            <h2>Krijo Sfidë</h2>
+            <button class="btn-back" onclick="goTo('home')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <h2 class="heading-lg">Krijo Sfidë</h2>
+        </div>
+
+        <!-- Step indicator -->
+        <div class="step-indicator" id="step-indicator">
+            <div class="step-dot active"></div>
+            <div class="step-line"></div>
+            <div class="step-dot"></div>
+            <div class="step-line"></div>
+            <div class="step-dot"></div>
         </div>
 
         <div class="wizard" id="wizard">
             <!-- Step 1: Sport + Format -->
             <div class="wiz-step active" data-step="1">
-                <p class="muted">Sporti</p>
-                <div class="sport-pick-grid">
+                <label class="input-label">Sporti</label>
+                <div class="sport-grid">
                     <button class="sport-chip" data-s="futboll" onclick="pickCreate(this,'sport')">⚽ Futboll</button>
                     <button class="sport-chip" data-s="basketboll" onclick="pickCreate(this,'sport')">🏀 Basketboll</button>
                     <button class="sport-chip" data-s="pingpong" onclick="pickCreate(this,'sport')">🏓 Ping Pong</button>
@@ -159,33 +217,35 @@
                     <button class="sport-chip" data-s="tenis" onclick="pickCreate(this,'sport')">🎾 Tenis</button>
                     <button class="sport-chip" data-s="badminton" onclick="pickCreate(this,'sport')">🏸 Badminton</button>
                 </div>
-                <p class="muted">Formati</p>
+                <label class="input-label">Formati</label>
                 <div class="pill-row">
                     <button class="pill" data-v="1v1" onclick="pickPill(this,'format')">1v1</button>
                     <button class="pill" data-v="2v2" onclick="pickPill(this,'format')">2v2</button>
                     <button class="pill" data-v="3v3" onclick="pickPill(this,'format')">3v3</button>
                     <button class="pill" data-v="5v5" onclick="pickPill(this,'format')">5v5</button>
                 </div>
-                <p class="muted">Kush luan?</p>
+                <label class="input-label">Kush luan?</label>
                 <div class="pill-row">
                     <button class="pill" data-v="djem" onclick="pickPill(this,'cgender')">Djem</button>
                     <button class="pill" data-v="vajza" onclick="pickPill(this,'cgender')">Vajza</button>
                 </div>
-                <button class="btn-main" onclick="wizNext()">Vazhdo</button>
+                <button class="btn-primary" onclick="wizNext()">Vazhdo</button>
             </div>
 
             <!-- Step 2: When + Where -->
             <div class="wiz-step" data-step="2">
-                <p class="muted">Kur?</p>
+                <label class="input-label">Kur?</label>
                 <div class="row-2">
                     <input type="date" id="c-date">
                     <input type="time" id="c-time">
                 </div>
-                <p class="muted">Ku? (kliko hartën)</p>
+                <label class="input-label">Ku? (kliko hartën)</label>
                 <div id="mini-map" class="minimap"></div>
-                <input type="text" id="c-location" placeholder="Emri i vendit (p.sh. Parku Rinia)">
+                <div class="input-group">
+                    <input type="text" id="c-location" placeholder="Emri i vendit (p.sh. Parku Rinia)">
+                </div>
 
-                <p class="muted">Sa lojtarë?</p>
+                <label class="input-label">Sa lojtarë?</label>
                 <div class="row-2">
                     <div class="counter">
                         <span>Kam</span>
@@ -200,12 +260,12 @@
                         <button onclick="adj('need',1)">+</button>
                     </div>
                 </div>
-                <button class="btn-main" onclick="wizNext()">Vazhdo</button>
+                <button class="btn-primary" onclick="wizNext()">Vazhdo</button>
             </div>
 
-            <!-- Step 3: Stake + Note (optional, fast) -->
+            <!-- Step 3: Stake + Note -->
             <div class="wiz-step" data-step="3">
-                <p class="muted">Basti (opsionale)</p>
+                <label class="input-label">Basti (opsionale)</label>
                 <div class="stake-row">
                     <button class="stake" onclick="pickStake(this,'redbull')">🥤 Red Bull</button>
                     <button class="stake" onclick="pickStake(this,'kafe')">☕ Kafe</button>
@@ -213,8 +273,11 @@
                     <button class="stake" onclick="pickStake(this,'pizza')">🍕 Pizza</button>
                     <button class="stake active" onclick="pickStake(this,'asgje')">🤝 Asgjë</button>
                 </div>
-                <input type="text" id="c-note" placeholder="Shënim (opsionale)">
-                <button class="btn-main" onclick="publishChallenge()">Publiko Sfidën</button>
+                <div class="input-group">
+                    <label class="input-label">Shënim</label>
+                    <input type="text" id="c-note" placeholder="Shënim (opsionale)">
+                </div>
+                <button class="btn-primary" onclick="publishChallenge()">Publiko Sfidën</button>
             </div>
         </div>
     </div>
@@ -231,8 +294,10 @@
 <div id="chat" class="screen">
     <div class="chat-wrap">
         <header class="chat-top">
-            <button class="back" onclick="goTo('home')">&larr;</button>
-            <div><b id="chat-title"></b><br><small id="chat-sub" class="muted"></small></div>
+            <button class="btn-back" onclick="goTo('home')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <div><b id="chat-title"></b><br><small id="chat-sub" class="text-muted"></small></div>
         </header>
         <div class="chat-msgs" id="chat-msgs"></div>
         <div class="chat-quick">
@@ -242,7 +307,9 @@
         </div>
         <div class="chat-bar">
             <input type="text" id="chat-inp" placeholder="Mesazh..." onkeydown="if(event.key==='Enter')sendMsg()">
-            <button class="send" onclick="sendMsg()">&#10148;</button>
+            <button class="send-btn" onclick="sendMsg()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
         </div>
     </div>
 </div>
@@ -250,19 +317,29 @@
 <!-- ====== MY CHALLENGES TAB ====== -->
 <div id="my" class="screen">
     <div class="tab-page">
-        <h2>Sfidat e mia</h2>
+        <h2 class="heading-lg">Sfidat e mia</h2>
         <div id="my-list" class="card-list"></div>
     </div>
-    <nav class="nav"><button class="nav-item" onclick="navTo('home',this)"><span>🗺️</span>Harta</button><button class="nav-item active" onclick="navTo('my',this)"><span>⚡</span>Sfidat</button><button class="nav-item" onclick="navTo('chats',this)"><span>💬</span>Chat</button><button class="nav-item" onclick="navTo('profile',this)"><span>👤</span>Profili</button></nav>
+    <nav class="nav">
+        <button class="nav-item" onclick="navTo('home',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Home</span></button>
+        <button class="nav-item active" onclick="navTo('my',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Sfidat</span></button>
+        <button class="nav-item" onclick="navTo('chats',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span>Chat</span></button>
+        <button class="nav-item" onclick="navTo('profile',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profili</span></button>
+    </nav>
 </div>
 
 <!-- ====== CHAT LIST TAB ====== -->
 <div id="chats" class="screen">
     <div class="tab-page">
-        <h2>Bisedat</h2>
+        <h2 class="heading-lg">Bisedat</h2>
         <div id="chats-list"></div>
     </div>
-    <nav class="nav"><button class="nav-item" onclick="navTo('home',this)"><span>🗺️</span>Harta</button><button class="nav-item" onclick="navTo('my',this)"><span>⚡</span>Sfidat</button><button class="nav-item active" onclick="navTo('chats',this)"><span>💬</span>Chat</button><button class="nav-item" onclick="navTo('profile',this)"><span>👤</span>Profili</button></nav>
+    <nav class="nav">
+        <button class="nav-item" onclick="navTo('home',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Home</span></button>
+        <button class="nav-item" onclick="navTo('my',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Sfidat</span></button>
+        <button class="nav-item active" onclick="navTo('chats',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span>Chat</span></button>
+        <button class="nav-item" onclick="navTo('profile',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profili</span></button>
+    </nav>
 </div>
 
 <!-- ====== PROFILE TAB ====== -->
@@ -270,19 +347,33 @@
     <div class="tab-page">
         <div class="prof-card">
             <div class="prof-avatar" id="prof-avatar">?</div>
-            <h3 id="prof-name">—</h3>
-            <p class="muted" id="prof-meta">—</p>
-            <div class="prof-stars">⭐⭐⭐⭐⭐ <span class="muted">5.0</span></div>
+            <h3 class="heading-md" id="prof-name">—</h3>
+            <p class="text-muted" id="prof-meta">—</p>
+            <div class="prof-rating">
+                <span class="rating-stars">★★★★★</span>
+                <span class="rating-num">5.0</span>
+            </div>
         </div>
+
         <div class="stats-row">
-            <div class="stat"><b id="s-played">0</b><span>Ndeshje</span></div>
-            <div class="stat"><b id="s-wins">0</b><span>Fitore</span></div>
-            <div class="stat"><b id="s-losses">0</b><span>Humbje</span></div>
+            <div class="stat-card">
+                <b id="s-played">0</b>
+                <span>Ndeshje</span>
+            </div>
+            <div class="stat-card">
+                <b id="s-wins">0</b>
+                <span>Fitore</span>
+            </div>
+            <div class="stat-card">
+                <b id="s-losses">0</b>
+                <span>Humbje</span>
+            </div>
         </div>
+
         <div id="prof-sports" class="prof-sports"></div>
 
         <!-- Achievement Badges -->
-        <h3 style="margin:20px 0 14px;font-size:16px">Arritjet</h3>
+        <h3 class="heading-sm" style="margin:24px 0 16px">Arritjet</h3>
         <div class="badges-grid" id="badges-grid">
             <div class="badge-item unlocked" data-badge="eger">
                 <div class="badge-ring ring-red">
@@ -337,7 +428,12 @@
 
         <button class="btn-outline btn-danger" onclick="logout()">Dil nga llogaria</button>
     </div>
-    <nav class="nav"><button class="nav-item" onclick="navTo('home',this)"><span>🗺️</span>Harta</button><button class="nav-item" onclick="navTo('my',this)"><span>⚡</span>Sfidat</button><button class="nav-item" onclick="navTo('chats',this)"><span>💬</span>Chat</button><button class="nav-item active" onclick="navTo('profile',this)"><span>👤</span>Profili</button></nav>
+    <nav class="nav">
+        <button class="nav-item" onclick="navTo('home',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Home</span></button>
+        <button class="nav-item" onclick="navTo('my',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Sfidat</span></button>
+        <button class="nav-item" onclick="navTo('chats',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span>Chat</span></button>
+        <button class="nav-item active" onclick="navTo('profile',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profili</span></button>
+    </nav>
 </div>
 
 <!-- Toast -->

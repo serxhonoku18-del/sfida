@@ -1,4 +1,4 @@
-// ===== SFIDA APP — v2 =====
+// ===== SFIDA APP — v3 Dark Mode King =====
 
 // --- Constants ---
 const SPORTS = {
@@ -10,17 +10,22 @@ const STAKES = {
     redbull:'🥤 Red Bull',kafe:'☕ Kafe',byrek:'🥧 Byrek',
     akullore:'🍦 Akullore',pizza:'🍕 Pizza',asgje:'🤝 Asgjë'
 };
+const SPORT_COLORS = {
+    futboll:'var(--futboll)',basketboll:'var(--basketboll)',
+    pingpong:'var(--pingpong)',volejboll:'var(--volejboll)',
+    tenis:'var(--tenis)',badminton:'var(--badminton)'
+};
 
 // --- State ---
-let me = null;           // current user
-let games = [];          // all challenges
-let mapObj = null;       // Leaflet map
+let me = null;
+let games = [];
+let mapObj = null;
 let miniMapObj = null;
 let miniPin = null;
 let mapPins = [];
 let filter = 'all';
 let genderFilter = 'all';
-let chatData = {};       // {gameId: [msgs]}
+let chatData = {};
 
 // Create form state
 let cf = {sport:null,format:null,cgender:null,stake:'asgje',have:1,need:1,loc:null};
@@ -96,8 +101,7 @@ function goTo(id) {
 function navTo(id, btn) {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
-    // Also sync other nav instances
-    document.querySelectorAll(`.nav-item`).forEach(b => {
+    document.querySelectorAll('.nav-item').forEach(b => {
         const text = b.textContent.trim();
         const targetText = btn ? btn.textContent.trim() : '';
         if (text === targetText) b.classList.add('active');
@@ -182,7 +186,7 @@ function finishSetup() {
     const age = parseInt(document.getElementById('inp-age').value);
     const lagja = document.getElementById('inp-lagja').value;
     const photoEl = document.querySelector('#avatar-preview img');
-    const chips = document.querySelectorAll('.sport-chip.on');
+    const chips = document.querySelectorAll('#setup .sport-chip.on');
 
     if (!name) return toast('Shkruaj emrin','err');
     if (!age || age < 16) return toast('Mosha min 16','err');
@@ -243,21 +247,17 @@ function initMiniMap() {
 function render() {
     renderCards();
     if (!mapObj) return;
-    // Clear pins
     mapPins.forEach(p => mapObj.removeLayer(p));
     mapPins = [];
 
     const list = getFiltered();
-
-    // Map pins
     list.forEach(g => {
         const icon = L.divIcon({
             className:`pin pin-${g.sport}`,
             html:SPORTS[g.sport].e,
-            iconSize:[42,42], iconAnchor:[21,21]
+            iconSize:[44,44], iconAnchor:[22,22]
         });
         const pin = L.marker([g.loc.lat, g.loc.lng], {icon}).addTo(mapObj);
-        const spots = totalSpots(g) - g.players.length;
         pin.bindPopup(`
             <div class="pop">
                 <h4>${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}</h4>
@@ -270,7 +270,6 @@ function render() {
         pin.on('click', function(){ this.openPopup(); });
         mapPins.push(pin);
     });
-
 }
 
 function renderCards() {
@@ -286,7 +285,7 @@ function renderCards() {
         <div class="gcard" onclick="openDetail(${g.id})">
             <div class="gcard-top">
                 <div class="gcard-sport">
-                    <span class="dot" style="background:var(--${g.sport === 'futboll' ? 'green' : g.sport === 'basketboll' ? 'orange' : g.sport === 'pingpong' ? 'red' : g.sport === 'volejboll' ? 'blue' : g.sport === 'tenis' ? 'lime' : 'purple'})"></span>
+                    <span class="dot" style="background:${SPORT_COLORS[g.sport]};color:${SPORT_COLORS[g.sport]}"></span>
                     ${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}
                 </div>
                 <span class="gcard-time ${urgency.cls}">${urgency.label}</span>
@@ -299,7 +298,7 @@ function renderCards() {
             <div class="gcard-bottom">
                 <div class="gcard-host">
                     <div class="av">${g.host.name[0]}</div>
-                    ${g.host.name} ⭐${g.host.rating}
+                    ${g.host.name} <span style="color:var(--warn)">★${g.host.rating}</span>
                 </div>
                 <button class="gcard-join ${full ? 'gcard-full' : ''}" onclick="event.stopPropagation();${full ? '' : `joinQuick(${g.id})`}">
                     ${full ? 'Plotë' : 'Bashkohu'}
@@ -320,7 +319,6 @@ function getFiltered() {
 
 function totalSpots(g) { return g.have + g.need; }
 
-// Urgency: how soon does it start?
 function getUrgency(g) {
     const parts = g.date.split('-');
     const gameDate = new Date(parts[0], parts[1]-1, parts[2]);
@@ -358,7 +356,7 @@ function toggleTray() {
 }
 
 // ========================
-// QUICK JOIN (1 tap!)
+// QUICK JOIN
 // ========================
 function joinQuick(id) {
     if (!me) { goTo('auth'); return; }
@@ -367,17 +365,15 @@ function joinQuick(id) {
     if (g.players.some(p => p.id === me.id)) { toast('Tashmë je brenda','err'); return; }
     if (g.gender !== me.gender) { toast(`Vetëm ${g.gender === 'djem' ? 'djem' : 'vajza'}`,'err'); return; }
 
-    // Instant join for demo (in production: host approval)
     g.players.push(me);
     toast('U bashkove!','ok');
     initChatForGame(g);
     render();
-    // Refresh detail if open
     if (!document.getElementById('detail-sheet').classList.contains('hidden')) openDetail(id);
 }
 
 // ========================
-// GAME DETAIL (bottom sheet)
+// GAME DETAIL
 // ========================
 function openDetail(id) {
     const g = games.find(x => x.id === id);
@@ -396,7 +392,7 @@ function openDetail(id) {
             <div class="detail-icon pin-${g.sport}">${SPORTS[g.sport].e}</div>
             <div>
                 <div class="detail-title">${SPORTS[g.sport].n} ${g.format}</div>
-                <div class="detail-sub">${lvl} — ${gText} — <span class="${urgency.cls}">${urgency.label}</span></div>
+                <div class="detail-sub">${lvl} · ${gText} · <span class="${urgency.cls}">${urgency.label}</span></div>
             </div>
         </div>
 
@@ -407,27 +403,27 @@ function openDetail(id) {
             <div class="detail-item"><small>Basti</small><b>${STAKES[g.stake] || g.stake}</b></div>
         </div>
 
-        ${g.note ? `<p style="font-size:13px;color:var(--t2);margin-bottom:12px">💬 ${g.note}</p>` : ''}
+        ${g.note ? `<p style="font-size:13px;color:var(--t2);margin-bottom:14px;padding:12px;background:var(--card);border-radius:var(--r-sm);border:1px solid var(--border)">💬 ${g.note}</p>` : ''}
 
-        <p class="muted">Lojtarët</p>
+        <p class="input-label" style="margin-bottom:8px">Lojtarët</p>
         <div class="detail-players">
             ${g.players.map((p,i) => `
                 <div class="detail-player">
-                    <div class="av">${p.photo ? `<img src="${p.photo}" style="width:28px;height:28px;border-radius:50%;object-fit:cover">` : p.name[0]}</div>
+                    <div class="av">${p.photo ? `<img src="${p.photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover">` : p.name[0]}</div>
                     <div>
-                        <b>${p.name}</b> ${p.age ? '<small>('+p.age+')</small>' : ''}
+                        <b>${p.name}</b> ${p.age ? '<small style="color:var(--t3)">('+p.age+')</small>' : ''}
                         <div class="role">${i===0?'🏠 Host':'🏃 Lojtar'}</div>
                     </div>
-                    ${p.rating ? `<small style="color:#FFB800">⭐${p.rating}</small>` : ''}
+                    ${p.rating ? `<small style="color:var(--warn)">★${p.rating}</small>` : ''}
                 </div>
             `).join('')}
         </div>
 
         <div class="detail-actions">
-            ${!me ? `<button class="btn-main" onclick="closeDetail();goTo('auth')">Regjistrohu</button>` :
-              isHost ? `<button class="btn-main" onclick="openChat(${g.id})">💬 Chat</button><button class="btn-outline" onclick="giveHost(${g.id})">Jep Host</button>` :
-              isIn ? `<button class="btn-main" onclick="openChat(${g.id})">💬 Chat</button>` :
-              spots > 0 ? `<button class="btn-main" onclick="joinQuick(${g.id})">Bashkohu tani!</button>` :
+            ${!me ? `<button class="btn-primary" onclick="closeDetail();goTo('auth')">Regjistrohu</button>` :
+              isHost ? `<button class="btn-primary" onclick="openChat(${g.id})">💬 Chat</button><button class="btn-outline" onclick="giveHost(${g.id})">Jep Host</button>` :
+              isIn ? `<button class="btn-primary" onclick="openChat(${g.id})">💬 Chat</button>` :
+              spots > 0 ? `<button class="btn-primary" onclick="joinQuick(${g.id})">Bashkohu tani!</button>` :
               `<button class="btn-outline" disabled>Plotë</button>`}
         </div>
     `;
@@ -445,11 +441,11 @@ function giveHost(id) {
     const g = games.find(x => x.id === id);
     if (!g || g.players.length < 2) return toast('Duhen 2+ lojtarë','err');
     const others = g.players.filter(p => p.id !== g.host.id);
-    const pick = others[0]; // In production: show picker
+    const pick = others[0];
     g.host = pick;
     g.players = [pick, ...g.players.filter(p => p.id !== pick.id)];
     toast(`${pick.name} është host!`,'ok');
-    openDetail(id); // refresh
+    openDetail(id);
 }
 
 // ========================
@@ -462,7 +458,6 @@ function resetWizard() {
     cf = {sport:null,format:null,cgender:null,stake:'asgje',have:1,need:1,loc:null};
     document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('active'));
     document.querySelector('.wiz-step[data-step="1"]').classList.add('active');
-    // Reset UI
     document.querySelectorAll('#create .sport-chip, #create .pill, #create .stake').forEach(b => b.classList.remove('on','active'));
     document.querySelector('.stake[onclick*="asgje"]').classList.add('active');
     document.getElementById('c-have').textContent = '1';
@@ -471,11 +466,21 @@ function resetWizard() {
     document.getElementById('c-note').value = '';
     const dateInp = document.getElementById('c-date');
     if (dateInp) dateInp.value = today;
+    updateStepIndicator();
+}
+
+function updateStepIndicator() {
+    const dots = document.querySelectorAll('.step-dot');
+    dots.forEach((dot, i) => {
+        dot.classList.remove('active', 'done');
+        if (i + 1 === wizStep) dot.classList.add('active');
+        else if (i + 1 < wizStep) dot.classList.add('done');
+    });
 }
 
 function pickCreate(btn, type) {
     if (type === 'sport') {
-        btn.closest('.sport-pick-grid').querySelectorAll('.sport-chip').forEach(c => c.classList.remove('on'));
+        btn.closest('.sport-grid').querySelectorAll('.sport-chip').forEach(c => c.classList.remove('on'));
         btn.classList.add('on');
         cf.sport = btn.dataset.s;
     }
@@ -493,7 +498,6 @@ function adj(type, d) {
 }
 
 function wizNext() {
-    // Validate current step
     if (wizStep === 1) {
         if (!cf.sport) return toast('Zgjidh sportin','err');
         if (!cf.format) return toast('Zgjidh formatin','err');
@@ -510,6 +514,7 @@ function wizNext() {
     document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('active'));
     const next = document.querySelector(`.wiz-step[data-step="${wizStep}"]`);
     if (next) next.classList.add('active');
+    updateStepIndicator();
 }
 
 function publishChallenge() {
@@ -554,11 +559,10 @@ function openChat(gId) {
     closeDetail();
 
     document.getElementById('chat-title').textContent = `${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}`;
-    document.getElementById('chat-sub').textContent = `${g.loc.name} — ${fmtDate(g.date)} ${g.time}`;
+    document.getElementById('chat-sub').textContent = `${g.loc.name} · ${fmtDate(g.date)} ${g.time}`;
 
     initChatForGame(g);
 
-    // Add demo msgs for demo games
     if (g.id <= 6 && chatData[g.id].length <= 1) {
         if (g.players.length > 1)
             chatData[g.id].push({type:'in',who:g.players[1].name,text:'Po vij në orë!',t:new Date(now.getTime()-3600000)});
@@ -595,7 +599,6 @@ function sendMsg() {
     inp.value = '';
     renderChat(gId);
 
-    // Demo auto-reply
     setTimeout(() => {
         const g = games.find(x => x.id === gId);
         if (!g) return;
@@ -615,16 +618,16 @@ function renderMyGames() {
     const el = document.getElementById('my-list');
     if (!me) { el.innerHTML = '<div class="empty">Regjistrohu për të parë sfidat</div>'; return; }
     const my = games.filter(g => g.players.some(p => p.id === me.id));
-    if (!my.length) { el.innerHTML = '<div class="empty">Nuk ke sfida<br><br><button class="btn-main" style="max-width:200px;margin:0 auto" onclick="goTo(\'create\')">Krijo sfidën e parë</button></div>'; return; }
+    if (!my.length) { el.innerHTML = '<div class="empty">Nuk ke sfida<br><br><button class="btn-primary" style="max-width:200px;margin:0 auto" onclick="goTo(\'create\')">Krijo sfidën e parë</button></div>'; return; }
     el.innerHTML = my.map(g => {
         const isHost = g.host.id === me.id;
-        const spots = totalSpots(g) - g.players.length;
         const urgency = getUrgency(g);
         return `<div class="gcard" onclick="openDetail(${g.id})">
             <div class="gcard-top">
                 <div class="gcard-sport">
+                    <span class="dot" style="background:${SPORT_COLORS[g.sport]};color:${SPORT_COLORS[g.sport]}"></span>
                     ${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}
-                    <span style="color:var(--c);font-size:11px;font-weight:700">${isHost ? '🏠 HOST' : '🏃'}</span>
+                    <span style="color:var(--accent);font-size:11px;font-weight:700">${isHost ? '🏠 HOST' : '🏃'}</span>
                 </div>
                 <span class="gcard-time ${urgency.cls}">${urgency.label}</span>
             </div>
