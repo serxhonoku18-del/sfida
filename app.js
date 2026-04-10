@@ -778,13 +778,51 @@ function toast(msg, type) {
 }
 
 // ========================
+// VIDEO INTRO
+// ========================
+let introDone = false;
+
+function endIntro() {
+    if (introDone) return;
+    introDone = true;
+    const intro = document.getElementById('video-intro');
+    if (!intro) return;
+    intro.classList.add('done');
+    setTimeout(() => {
+        intro.remove();
+        // After intro: go home if logged in, else show splash
+        const saved = localStorage.getItem('sf_me');
+        if (saved) {
+            me = JSON.parse(saved);
+            goTo('home');
+        } else {
+            document.getElementById('splash').classList.add('active');
+        }
+    }, 800);
+}
+
+// ========================
 // INIT
 // ========================
 document.addEventListener('DOMContentLoaded', () => {
-    const saved = localStorage.getItem('sf_me');
-    if (saved) {
-        me = JSON.parse(saved);
-        goTo('home');
+    const video = document.getElementById('intro-video');
+
+    if (video) {
+        video.addEventListener('click', endIntro);
+        video.addEventListener('touchstart', endIntro, {passive:true});
+        video.addEventListener('ended', endIntro);
+        // Fallback if video stalls
+        setTimeout(endIntro, 14000);
+    } else {
+        // No video — go straight
+        const saved = localStorage.getItem('sf_me');
+        if (saved) {
+            me = JSON.parse(saved);
+            goTo('home');
+        } else {
+            document.getElementById('splash').classList.add('active');
+        }
     }
+
     document.getElementById('c-date').value = today;
 });
