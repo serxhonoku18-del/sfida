@@ -297,6 +297,16 @@ select{appearance:none}
 #map.map-hidden{
     display:none!important;
 }
+/* Mobile: map peek (shows top portion) */
+#map.map-peek{
+    display:block!important;
+    position:relative;
+    top:0;bottom:auto;left:0;right:0;
+    height:200px;
+    border-radius:0 0 var(--r) var(--r);
+    z-index:1;
+    flex-shrink:0;
+}
 .map-toggle{
     width:40px;height:40px;border-radius:12px;
     background:var(--card);border:1.5px solid var(--border-solid);
@@ -350,11 +360,90 @@ select{appearance:none}
 
 /* ===== FEED (card list view) ===== */
 .feed{
-    position:fixed;top:88px;bottom:var(--nav);left:0;right:0;
+    flex:1;
     overflow-y:auto;z-index:10;
-    padding:12px 16px 16px;
+    padding:12px 16px calc(var(--nav) + 16px);
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
+}
+
+/* ===== DESKTOP LAYOUT ===== */
+@media(min-width:900px){
+    /* Home becomes a two-column layout: map left, feed right */
+    #home{flex-direction:column}
+    .topbar{max-width:100%}
+
+    .desktop-body{
+        display:flex;
+        position:fixed;top:88px;bottom:0;left:0;right:0;
+    }
+    .desktop-body #map{
+        position:relative!important;
+        top:0!important;bottom:0!important;left:0!important;
+        flex:1.2;
+        display:block!important;
+        height:auto!important;
+        border-radius:0!important;
+    }
+    .desktop-body #map.map-hidden{display:block!important}
+    .desktop-body #map.map-peek{
+        position:relative!important;
+        height:auto!important;
+        border-radius:0!important;
+    }
+    .desktop-body .feed{
+        position:relative!important;
+        top:0!important;bottom:0!important;
+        flex:0 0 400px;
+        max-width:400px;
+        overflow-y:auto;
+        border-left:1px solid var(--border);
+        padding:16px;
+    }
+    .desktop-body .fab{
+        right:416px;
+    }
+    .nav{display:none!important}
+
+    /* Desktop top nav replaces bottom nav */
+    .topbar{
+        display:flex;align-items:center;
+        padding-left:24px;padding-right:24px;
+    }
+    .topbar-row{margin-bottom:0;flex-shrink:0}
+    .filters{margin-left:16px}
+
+    /* Desktop nav inside topbar */
+    .desktop-nav{
+        display:flex;align-items:center;gap:4px;
+        margin-left:auto;
+    }
+    .desktop-nav .nav-item{
+        flex-direction:row;gap:6px;
+        padding:8px 16px;border-radius:50px;
+        font-size:13px;min-height:auto;
+        transition:all .2s;
+    }
+    .desktop-nav .nav-item.active{
+        background:var(--accent-soft);
+    }
+    .desktop-nav .nav-item.active::after{display:none}
+    .desktop-nav .nav-item.active svg{transform:none}
+    .desktop-nav .nav-item svg{width:18px;height:18px}
+}
+
+/* Mobile layout */
+@media(max-width:899px){
+    .desktop-nav{display:none!important}
+    .desktop-body{
+        display:flex!important;
+        flex-direction:column;
+        position:fixed;top:88px;bottom:0;left:0;right:0;
+        overflow:hidden;
+    }
+    .desktop-body .feed{
+        padding-bottom:calc(var(--nav) + 16px);
+    }
 }
 .feed-status{
     font-size:13px;color:var(--t3);
@@ -373,12 +462,13 @@ select{appearance:none}
 .gcard{
     background:var(--card);
     border:1px solid var(--border);
-    border-radius:var(--r);padding:18px;
+    border-radius:var(--r);
     cursor:pointer;
     transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
-    display:flex;flex-direction:column;gap:12px;
+    display:flex;flex-direction:column;
     box-shadow:0 2px 8px rgba(0,0,0,.04);
     animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+    overflow:hidden;
 }
 .gcard:hover{
     transform:translateY(-4px);
@@ -386,6 +476,19 @@ select{appearance:none}
 }
 .gcard:active{
     transform:scale(.98);
+}
+
+/* Card hero image */
+.gcard-img{
+    width:100%;height:140px;
+    object-fit:cover;
+    display:block;
+}
+
+/* Card body below image */
+.gcard-body{
+    padding:14px 16px;
+    display:flex;flex-direction:column;gap:10px;
 }
 
 .gcard-top{display:flex;justify-content:space-between;align-items:center}
@@ -410,7 +513,7 @@ select{appearance:none}
 
 .gcard-bottom{
     display:flex;align-items:center;gap:10px;
-    padding-top:12px;border-top:1px solid var(--border);
+    padding-top:10px;border-top:1px solid var(--border);
 }
 .gcard-host{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);flex-shrink:0}
 .gcard-host .av{
@@ -899,12 +1002,9 @@ select{appearance:none}
     .fab{padding:12px 18px;font-size:13px}
 }
 
-@media(min-width:600px){
+@media(min-width:600px) and (max-width:899px){
     .bottom-sheet{max-width:420px;left:50%;transform:translateX(-50%);border-radius:24px 24px 0 0}
     .feed{max-width:420px;margin:0 auto;left:0;right:0}
-}
-
-@media(min-width:900px){
     .nav{width:420px;left:50%;transform:translateX(-50%);border-radius:16px 16px 0 0}
 }
 

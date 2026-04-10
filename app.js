@@ -15,6 +15,11 @@ const SPORT_COLORS = {
     pingpong:'var(--pingpong)',volejboll:'var(--volejboll)',
     tenis:'var(--tenis)',badminton:'var(--badminton)'
 };
+const SPORT_IMAGES = {
+    futboll:'pictures/futboll.jpg',basketboll:'pictures/basketboll.jpg',
+    pingpong:'pictures/pingpong.jpg',volejboll:'pictures/volejboll.jpg',
+    tenis:'pictures/tenis.jpg',badminton:'pictures/badminton.jpg'
+};
 
 // --- State ---
 let me = null;
@@ -97,13 +102,16 @@ function saveChats() { localStorage.setItem('sf_chats', JSON.stringify(chatData)
 // NAVIGATION
 // ========================
 let mapVisible = false;
+let mapExpanded = false;
+
+function isDesktop() { return window.innerWidth >= 900; }
 
 function goTo(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const el = document.getElementById(id);
     if (el) {
         el.classList.add('active');
-        if (id === 'home') { renderCards(); if (mapVisible) setTimeout(initMap, 80); }
+        if (id === 'home') { renderCards(); setTimeout(initMap, 80); }
         if (id === 'create') { setTimeout(initMiniMap, 150); resetWizard(); }
         if (id === 'profile') updateProfile();
         if (id === 'my') renderMyGames();
@@ -112,20 +120,26 @@ function goTo(id) {
 }
 
 function toggleMapView() {
-    mapVisible = !mapVisible;
     const mapEl = document.getElementById('map');
     const feedEl = document.getElementById('feed');
     const toggleBtn = document.getElementById('map-toggle');
-    if (mapVisible) {
-        mapEl.classList.remove('map-hidden');
+
+    if (isDesktop()) return; // Desktop always shows map
+
+    mapExpanded = !mapExpanded;
+    if (mapExpanded) {
+        // Full map mode
+        mapEl.classList.remove('map-peek','map-hidden');
         feedEl.style.display = 'none';
         toggleBtn.classList.add('active');
-        setTimeout(initMap, 80);
     } else {
-        mapEl.classList.add('map-hidden');
+        // Peek mode (default)
+        mapEl.classList.add('map-peek');
+        mapEl.classList.remove('map-hidden');
         feedEl.style.display = '';
         toggleBtn.classList.remove('active');
     }
+    setTimeout(() => { if (mapObj) mapObj.invalidateSize(); }, 100);
 }
 
 function navTo(id, btn) {
@@ -319,28 +333,32 @@ function renderCards() {
         const full = spots <= 0;
         const urgency = getUrgency(g);
         const spotsText = spots === 1 ? '1 vend i lirë' : `${spots} vende të lira`;
+        const img = SPORT_IMAGES[g.sport] || '';
         return `
         <div class="gcard" onclick="openDetail(${g.id})">
-            <div class="gcard-top">
-                <div class="gcard-sport">
-                    <span class="dot" style="background:${SPORT_COLORS[g.sport]};color:${SPORT_COLORS[g.sport]}"></span>
-                    ${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}
+            ${img ? `<img class="gcard-img" src="${img}" alt="${SPORTS[g.sport].n}" loading="lazy">` : ''}
+            <div class="gcard-body">
+                <div class="gcard-top">
+                    <div class="gcard-sport">
+                        <span class="dot" style="background:${SPORT_COLORS[g.sport]};color:${SPORT_COLORS[g.sport]}"></span>
+                        ${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}
+                    </div>
+                    <span class="gcard-time ${urgency.cls}">${urgency.label}</span>
                 </div>
-                <span class="gcard-time ${urgency.cls}">${urgency.label}</span>
-            </div>
-            <div class="gcard-mid">
-                <span>📍 ${g.loc.name}</span>
-                <span class="spots">${g.players.length}/${totalSpots(g)}</span>
-                ${g.stake !== 'asgje' ? `<span class="stake-tag">${STAKES[g.stake]}</span>` : ''}
-            </div>
-            <div class="gcard-bottom">
-                <div class="gcard-host">
-                    <div class="av">${g.host.name[0]}</div>
-                    ${g.host.name} <span style="color:var(--warn)">★${g.host.rating}</span>
+                <div class="gcard-mid">
+                    <span>📍 ${g.loc.name}</span>
+                    <span class="spots">${g.players.length}/${totalSpots(g)}</span>
+                    ${g.stake !== 'asgje' ? `<span class="stake-tag">${STAKES[g.stake]}</span>` : ''}
                 </div>
-                <button class="gcard-join ${full ? 'gcard-full' : ''}" onclick="event.stopPropagation();${full ? '' : `joinQuick(${g.id})`}">
-                    ${full ? 'Plotë' : `Bashkohu · ${spotsText}`}
-                </button>
+                <div class="gcard-bottom">
+                    <div class="gcard-host">
+                        <div class="av">${g.host.name[0]}</div>
+                        ${g.host.name} <span style="color:var(--warn)">★${g.host.rating}</span>
+                    </div>
+                    <button class="gcard-join ${full ? 'gcard-full' : ''}" onclick="event.stopPropagation();${full ? '' : `joinQuick(${g.id})`}">
+                        ${full ? 'Plotë' : `Bashkohu · ${spotsText}`}
+                    </button>
+                </div>
             </div>
         </div>`;
     }).join('');
