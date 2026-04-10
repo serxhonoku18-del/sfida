@@ -1,4 +1,4 @@
-// ===== SFIDA APP — v3 Dark Mode King =====
+// ===== SFIDA APP — v4 NomadTable-Inspired =====
 
 // --- Constants ---
 const SPORTS = {
