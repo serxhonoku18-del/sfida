@@ -132,6 +132,8 @@ select{appearance:none}
 }
 .splash-inner{
     position:relative;z-index:2;
+    width:100%;max-width:360px;
+    padding:0 24px;
     animation:popIn .6s cubic-bezier(.34,1.56,.64,1) both;
 }
 .splash-glow{
