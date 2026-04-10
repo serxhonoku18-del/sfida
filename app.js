@@ -249,7 +249,7 @@ function finishSetup() {
 function initMap() {
     if (mapObj) { mapObj.invalidateSize(); return; }
     mapObj = L.map('map', {zoomControl:false, attributionControl:false}).setView([41.3275, 19.8187], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(mapObj);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {maxZoom:19}).addTo(mapObj);
     L.control.zoom({position:'topright'}).addTo(mapObj);
     render();
 }
@@ -257,7 +257,7 @@ function initMap() {
 function initMiniMap() {
     if (miniMapObj) { miniMapObj.invalidateSize(); return; }
     miniMapObj = L.map('mini-map', {zoomControl:false, attributionControl:false}).setView([41.3275, 19.8187], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(miniMapObj);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {maxZoom:19}).addTo(miniMapObj);
     miniMapObj.on('click', e => {
         if (miniPin) miniMapObj.removeLayer(miniPin);
         miniPin = L.marker(e.latlng, {
