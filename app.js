@@ -77,10 +77,21 @@ const demoGames = [
      host:demoUsers[5],players:[demoUsers[5],demoUsers[3]],status:'active'}
 ];
 
-games = [...demoGames];
-demoGames.forEach(g => {
-    chatData[g.id] = [{type:'sys',text:`${SPORTS[g.sport].e} Sfida u krijua!`,t:new Date(now.getTime()-7200000)}];
-});
+// Load saved games or use demos
+const savedGames = localStorage.getItem('sf_games');
+const savedChats = localStorage.getItem('sf_chats');
+if (savedGames) {
+    games = JSON.parse(savedGames);
+    chatData = savedChats ? JSON.parse(savedChats) : {};
+} else {
+    games = [...demoGames];
+    demoGames.forEach(g => {
+        chatData[g.id] = [{type:'sys',text:`${SPORTS[g.sport].e} Sfida u krijua!`,t:new Date(now.getTime()-7200000)}];
+    });
+}
+
+function saveGames() { localStorage.setItem('sf_games', JSON.stringify(games)); }
+function saveChats() { localStorage.setItem('sf_chats', JSON.stringify(chatData)); }
 
 // ========================
 // NAVIGATION
@@ -118,13 +129,9 @@ function toggleMapView() {
 }
 
 function navTo(id, btn) {
+    // Sync all nav instances by data-page attribute
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(b => {
-        const text = b.textContent.trim();
-        const targetText = btn ? btn.textContent.trim() : '';
-        if (text === targetText) b.classList.add('active');
-    });
+    document.querySelectorAll(`.nav-item[data-page="${id}"]`).forEach(b => b.classList.add('active'));
     if (id === 'profile' && !me) { goTo('auth'); return; }
     goTo(id);
 }
@@ -242,7 +249,7 @@ function finishSetup() {
 function initMap() {
     if (mapObj) { mapObj.invalidateSize(); return; }
     mapObj = L.map('map', {zoomControl:false, attributionControl:false}).setView([41.3275, 19.8187], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(mapObj);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(mapObj);
     L.control.zoom({position:'topright'}).addTo(mapObj);
     render();
 }
@@ -250,7 +257,7 @@ function initMap() {
 function initMiniMap() {
     if (miniMapObj) { miniMapObj.invalidateSize(); return; }
     miniMapObj = L.map('mini-map', {zoomControl:false, attributionControl:false}).setView([41.3275, 19.8187], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(miniMapObj);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {maxZoom:19}).addTo(miniMapObj);
     miniMapObj.on('click', e => {
         if (miniPin) miniMapObj.removeLayer(miniPin);
         miniPin = L.marker(e.latlng, {
@@ -399,6 +406,7 @@ function joinQuick(id) {
     if (g.gender !== me.gender) { toast(`Vetëm ${g.gender === 'djem' ? 'djem' : 'vajza'}`,'err'); return; }
 
     g.players.push(me);
+    saveGames();
     toast('U bashkove!','ok');
     initChatForGame(g);
     render();
@@ -573,6 +581,8 @@ function publishChallenge() {
 
     games.unshift(g);
     initChatForGame(g);
+    saveGames();
+    saveChats();
     toast('Sfida u publikua!','ok');
     goTo('home');
 }
@@ -630,6 +640,7 @@ function sendMsg() {
     if (!chatData[gId]) chatData[gId] = [];
     chatData[gId].push({type:'out',who:me?me.name:'Ti',text,t:new Date()});
     inp.value = '';
+    saveChats();
     renderChat(gId);
 
     setTimeout(() => {
