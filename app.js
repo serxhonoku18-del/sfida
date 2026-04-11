@@ -334,14 +334,15 @@ function renderCards() {
         const urgency = getUrgency(g);
         const spotsText = spots === 1 ? '1 vend i lirë' : `${spots} vende të lira`;
         const img = SPORT_IMAGES[g.sport] || '';
+        const sportColor = SPORT_COLORS[g.sport];
         return `
         <div class="gcard" onclick="openDetail(${g.id})">
             ${img ? `<img class="gcard-img" src="${img}" alt="${SPORTS[g.sport].n}" loading="lazy">` : ''}
             <div class="gcard-body">
                 <div class="gcard-top">
                     <div class="gcard-sport">
-                        <span class="dot" style="background:${SPORT_COLORS[g.sport]};color:${SPORT_COLORS[g.sport]}"></span>
-                        ${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}
+                        <span class="sport-icon-circle" style="background:${sportColor}15;color:${sportColor}">${SPORTS[g.sport].e}</span>
+                        ${SPORTS[g.sport].n} ${g.format}
                     </div>
                     <span class="gcard-time ${urgency.cls}">${urgency.label}</span>
                 </div>
@@ -678,24 +679,43 @@ function quickMsg(t) { document.getElementById('chat-inp').value = t; sendMsg();
 // ========================
 function renderMyGames() {
     const el = document.getElementById('my-list');
-    if (!me) { el.innerHTML = '<div class="empty">Regjistrohu për të parë sfidat</div>'; return; }
+    if (!me) {
+        el.innerHTML = `<div class="empty-state">
+            <div class="empty-state-icon">👤</div>
+            <h3>Nuk je kyçur</h3>
+            <p>Regjistrohu për të parë sfidat e tua</p>
+            <button class="btn-primary" onclick="goTo('auth')">Regjistrohu</button>
+        </div>`;
+        return;
+    }
     const my = games.filter(g => g.players.some(p => p.id === me.id));
-    if (!my.length) { el.innerHTML = '<div class="empty">Nuk ke sfida<br><br><button class="btn-primary" style="max-width:200px;margin:0 auto" onclick="goTo(\'create\')">Krijo sfidën e parë</button></div>'; return; }
+    if (!my.length) {
+        el.innerHTML = `<div class="empty-state">
+            <div class="empty-state-icon">⚡</div>
+            <h3>Nuk ke sfida ende</h3>
+            <p>Krijo ose bashkohu në një sfidë për të filluar</p>
+            <button class="btn-primary" onclick="goTo('home')">Shiko sfidat</button>
+        </div>`;
+        return;
+    }
     el.innerHTML = my.map(g => {
         const isHost = g.host.id === me.id;
         const urgency = getUrgency(g);
+        const sportColor = SPORT_COLORS[g.sport];
         return `<div class="gcard" onclick="openDetail(${g.id})">
-            <div class="gcard-top">
-                <div class="gcard-sport">
-                    <span class="dot" style="background:${SPORT_COLORS[g.sport]};color:${SPORT_COLORS[g.sport]}"></span>
-                    ${SPORTS[g.sport].e} ${SPORTS[g.sport].n} ${g.format}
-                    <span style="color:var(--accent);font-size:11px;font-weight:700">${isHost ? '🏠 HOST' : '🏃'}</span>
+            <div class="gcard-body">
+                <div class="gcard-top">
+                    <div class="gcard-sport">
+                        <span class="sport-icon-circle" style="background:${sportColor}15;color:${sportColor}">${SPORTS[g.sport].e}</span>
+                        ${SPORTS[g.sport].n} ${g.format}
+                        <span style="color:var(--accent);font-size:11px;font-weight:700">${isHost ? '🏠 HOST' : '🏃'}</span>
+                    </div>
+                    <span class="gcard-time ${urgency.cls}">${urgency.label}</span>
                 </div>
-                <span class="gcard-time ${urgency.cls}">${urgency.label}</span>
-            </div>
-            <div class="gcard-mid">
-                <span>📍 ${g.loc.name}</span>
-                <span class="spots">${g.players.length}/${totalSpots(g)}</span>
+                <div class="gcard-mid">
+                    <span>📍 ${g.loc.name}</span>
+                    <span class="spots">${g.players.length}/${totalSpots(g)}</span>
+                </div>
             </div>
         </div>`;
     }).join('');
@@ -714,7 +734,15 @@ function renderChatList() {
         return {g, last};
     }).filter(Boolean);
 
-    if (!items.length) { el.innerHTML = '<div class="empty">Nuk ke biseda akoma</div>'; return; }
+    if (!items.length) {
+        el.innerHTML = `<div class="empty-state">
+            <div class="empty-state-icon">💬</div>
+            <h3>Nuk ke biseda</h3>
+            <p>Bashkohu në një sfidë për të filluar bisedën</p>
+            <button class="btn-primary" onclick="navTo('home',this)">Shiko sfidat</button>
+        </div>`;
+        return;
+    }
     el.innerHTML = items.map(({g, last}) => `
         <div class="chat-item" onclick="openChat(${g.id})">
             <div class="ci-icon pin-${g.sport}">${SPORTS[g.sport].e}</div>

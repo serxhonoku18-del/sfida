@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400;1,9..40,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css?v=13">
+    <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
 
@@ -340,7 +340,12 @@
 <!-- ====== MY CHALLENGES TAB ====== -->
 <div id="my" class="screen">
     <div class="tab-page">
-        <h2 class="heading-lg">Sfidat e mia</h2>
+        <div class="tab-header">
+            <button class="btn-back" onclick="navTo('home',this)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <h2 class="heading-lg">Sfidat e mia</h2>
+        </div>
         <div id="my-list" class="card-list"></div>
     </div>
     <nav class="nav">
@@ -354,7 +359,12 @@
 <!-- ====== CHAT LIST TAB ====== -->
 <div id="chats" class="screen">
     <div class="tab-page">
-        <h2 class="heading-lg">Bisedat</h2>
+        <div class="tab-header">
+            <button class="btn-back" onclick="navTo('home',this)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <h2 class="heading-lg">Bisedat</h2>
+        </div>
         <div id="chats-list"></div>
     </div>
     <nav class="nav">
@@ -368,10 +378,17 @@
 <!-- ====== PROFILE TAB ====== -->
 <div id="profile" class="screen">
     <div class="tab-page">
+        <div class="tab-header">
+            <button class="btn-back" onclick="navTo('home',this)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <h2 class="heading-lg">Profili</h2>
+        </div>
+
         <div class="prof-card">
             <div class="prof-avatar" id="prof-avatar">?</div>
-            <h3 class="heading-md" id="prof-name">—</h3>
-            <p class="text-muted" id="prof-meta">—</p>
+            <h3 class="prof-name" id="prof-name">—</h3>
+            <p class="prof-meta-text" id="prof-meta">—</p>
             <div class="prof-rating">
                 <span class="rating-stars">★★★★★</span>
                 <span class="rating-num">5.0</span>
@@ -381,22 +398,25 @@
         <div class="stats-row">
             <div class="stat-card">
                 <b id="s-played">0</b>
-                <span>Ndeshje</span>
+                <span>NDESHJE</span>
             </div>
             <div class="stat-card">
                 <b id="s-wins">0</b>
-                <span>Fitore</span>
+                <span>FITORE</span>
             </div>
             <div class="stat-card">
                 <b id="s-losses">0</b>
-                <span>Humbje</span>
+                <span>HUMBJE</span>
             </div>
         </div>
 
         <div id="prof-sports" class="prof-sports"></div>
 
         <!-- Achievement Badges -->
-        <h3 class="heading-sm" style="margin:24px 0 16px">Arritjet</h3>
+        <div class="achievements-header">
+            <h3 class="heading-sm">Arritjet</h3>
+            <small>Rrëshqit &rarr;</small>
+        </div>
         <div class="badges-grid" id="badges-grid">
             <div class="badge-item unlocked" data-badge="eger">
                 <div class="badge-ring ring-red">
@@ -449,7 +469,7 @@
             </div>
         </div>
 
-        <button class="btn-outline btn-danger" onclick="logout()">Dil nga llogaria</button>
+        <button class="btn-logout" onclick="logout()">Dil nga llogaria</button>
     </div>
     <nav class="nav">
         <button class="nav-item" data-page="home" onclick="navTo('home',this)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Home</span></button>
@@ -463,6 +483,6 @@
 <div id="toast" class="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>
