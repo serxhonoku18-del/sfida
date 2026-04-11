@@ -848,7 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
         video.addEventListener('touchstart', endIntro, {passive:true});
         video.addEventListener('ended', endIntro);
         // Fallback if video stalls
-        setTimeout(endIntro, 14000);
+        setTimeout(endIntro, 8000);
     } else {
         // No video — go straight
         const saved = localStorage.getItem('sf_me');
