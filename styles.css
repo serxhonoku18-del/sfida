@@ -1098,6 +1098,61 @@ select{appearance:none}
     .nav{width:420px;left:50%;transform:translateX(-50%);border-radius:16px 16px 0 0}
 }
 
+/* ===== DESKTOP TAB PAGES (after base rules for correct cascade) ===== */
+@media(min-width:900px){
+    .tab-page{
+        max-width:720px;
+        padding:40px 40px;
+        padding-top:40px;
+        padding-bottom:40px;
+    }
+    .tab-page h2,.tab-header h2{font-size:32px}
+
+    .prof-card{padding:40px 32px 32px;margin-bottom:32px}
+    .prof-avatar{width:120px;height:120px;font-size:42px;margin-bottom:20px}
+    .prof-name{font-size:26px}
+    .prof-meta-text{font-size:15px}
+    .prof-rating{padding:8px 18px}
+    .rating-stars{font-size:15px}
+    .rating-num{font-size:16px}
+
+    .stats-row{gap:16px;margin-bottom:32px}
+    .stat-card{padding:28px 12px;border-radius:var(--r)}
+    .stat-card b{font-size:36px;margin-bottom:8px}
+    .stat-card span{font-size:12px;letter-spacing:1px}
+
+    .prof-sports{gap:10px;margin-bottom:32px}
+    .prof-sports .chip{padding:10px 20px;font-size:14px}
+
+    .achievements-header{margin:32px 0 20px}
+    .badges-grid{gap:24px}
+    .badge-ring{width:90px;height:90px}
+    .badge-icon{font-size:36px}
+    .badge-label{font-size:13px}
+    .badge-desc{font-size:11px}
+    .badge-item{min-width:110px}
+
+    .btn-logout{max-width:300px;margin:0 auto;font-size:15px}
+
+    .chat-item{padding:18px 22px;border-radius:var(--r);margin-bottom:12px}
+    .chat-item .ci-icon{width:52px;height:52px;font-size:24px;border-radius:18px}
+    .chat-item .ci-name{font-size:16px}
+    .chat-item .ci-last{font-size:14px}
+    .chat-item .ci-time{font-size:12px}
+
+    .gcard-body{padding:18px 22px}
+    .gcard-sport{font-size:17px}
+    .gcard-sport .sport-icon-circle{width:40px;height:40px;font-size:20px}
+    .gcard-mid{font-size:14px}
+    .gcard-join{font-size:15px;padding:14px 20px}
+
+    .empty-state{padding:80px 40px}
+    .empty-state-icon{width:96px;height:96px;font-size:42px;margin-bottom:28px}
+    .empty-state h3{font-size:24px}
+    .empty-state p{font-size:15px;max-width:300px}
+    .empty-state .btn-primary{max-width:240px;font-size:16px}
+}
+
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:transparent}
