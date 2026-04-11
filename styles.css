@@ -128,7 +128,7 @@ select{appearance:none}
 #splash{
     background:linear-gradient(180deg,#fff 0%,var(--bg) 40%,var(--accent-soft) 100%);
     justify-content:center;align-items:center;text-align:center;
-    padding:24px;position:relative;overflow:hidden;
+    padding:24px;overflow:hidden;
 }
 .splash-inner{
     position:absolute;top:50%;left:50%;
@@ -136,7 +136,11 @@ select{appearance:none}
     z-index:2;
     width:100%;max-width:360px;
     padding:0 24px;
-    animation:popIn .6s cubic-bezier(.34,1.56,.64,1) both;
+    animation:splashIn .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes splashIn{
+    0%{opacity:0;transform:translate(-50%,-50%) translateY(16px) scale(.96)}
+    100%{opacity:1;transform:translate(-50%,-50%) translateY(0) scale(1)}
 }
 .splash-glow{
     position:absolute;top:30%;left:50%;
