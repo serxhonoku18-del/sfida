@@ -4,7 +4,8 @@
 const SPORTS = {
     futboll:{e:'⚽',n:'Futboll'},basketboll:{e:'🏀',n:'Basketboll'},
     pingpong:{e:'🏓',n:'Ping Pong'},volejboll:{e:'🏐',n:'Volejboll'},
-    tenis:{e:'🎾',n:'Tenis'},badminton:{e:'🏸',n:'Badminton'}
+    tenis:{e:'🎾',n:'Tenis'},badminton:{e:'🏸',n:'Badminton'},
+    shah:{e:'♟️',n:'Shah'}
 };
 const STAKES = {
     redbull:'🥤 Red Bull',kafe:'☕ Kafe',byrek:'🥧 Byrek',
@@ -13,12 +14,14 @@ const STAKES = {
 const SPORT_COLORS = {
     futboll:'var(--futboll)',basketboll:'var(--basketboll)',
     pingpong:'var(--pingpong)',volejboll:'var(--volejboll)',
-    tenis:'var(--tenis)',badminton:'var(--badminton)'
+    tenis:'var(--tenis)',badminton:'var(--badminton)',
+    shah:'var(--shah)'
 };
 const SPORT_IMAGES = {
     futboll:'pictures/futboll.jpg',basketboll:'pictures/basketboll.jpg',
     pingpong:'pictures/pingpong.jpg',volejboll:'pictures/volejboll.jpg',
-    tenis:'pictures/tenis.jpg',badminton:'pictures/badminton.jpg'
+    tenis:'pictures/tenis.jpg',badminton:'pictures/badminton.jpg',
+    shah:'pictures/shah.jpg'
 };
 
 // --- State ---
@@ -79,7 +82,12 @@ const demoGames = [
      loc:{lat:41.3290,lng:19.8160,name:'Parku i Madh'},
      date:today,time:'19:00',level:'chill',stake:'asgje',
      gender:'vajza',note:'Kemi raketat per te gjithe',
-     host:demoUsers[5],players:[demoUsers[5],demoUsers[3]],status:'active'}
+     host:demoUsers[5],players:[demoUsers[5],demoUsers[3]],status:'active'},
+    {id:7,sport:'shah',format:'1v1',have:1,need:1,
+     loc:{lat:41.3260,lng:19.8200,name:'Parku Rinia - Tavolina'},
+     date:tomorrow,time:'11:00',level:'competitive',stake:'kafe',
+     gender:'djem',note:'Sjell sahatën nëse ke',
+     host:demoUsers[2],players:[demoUsers[2]],status:'active'}
 ];
 
 // Load saved games or use demos

@@ -38,6 +38,7 @@
     --volejboll:#2196F3;
     --tenis:#8BC34A;
     --badminton:#9C27B0;
+    --shah:#5D4037;
 }
 
 /* ===== VIDEO INTRO ===== */
@@ -352,6 +353,7 @@ select{appearance:none}
 .pin-volejboll{background:var(--volejboll)}
 .pin-tenis{background:var(--tenis)}
 .pin-badminton{background:var(--badminton)}
+.pin-shah{background:var(--shah)}
 
 /* Map popup */
 .leaflet-popup-content-wrapper{

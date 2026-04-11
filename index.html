@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400;1,9..40,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="styles.css?v=15">
+    <link rel="stylesheet" href="styles.css?v=16">
 </head>
 <body>
 
@@ -122,6 +122,7 @@
             <button class="sport-chip" data-s="volejboll" onclick="toggleChip(this)">🏐 Volejboll</button>
             <button class="sport-chip" data-s="tenis" onclick="toggleChip(this)">🎾 Tenis</button>
             <button class="sport-chip" data-s="badminton" onclick="toggleChip(this)">🏸 Badminton</button>
+            <button class="sport-chip" data-s="shah" onclick="toggleChip(this)">♟️ Shah</button>
         </div>
 
         <button class="btn-primary" onclick="finishSetup()">Fillo!</button>
@@ -167,6 +168,7 @@
             <button class="chip" data-f="volejboll" onclick="setFilter(this)">🏐 Volejboll</button>
             <button class="chip" data-f="tenis" onclick="setFilter(this)">🎾 Tenis</button>
             <button class="chip" data-f="badminton" onclick="setFilter(this)">🏸 Badminton</button>
+            <button class="chip" data-f="shah" onclick="setFilter(this)">♟️ Shah</button>
         </div>
     </header>
 
@@ -239,6 +241,7 @@
                     <button class="sport-chip" data-s="volejboll" onclick="pickCreate(this,'sport')">🏐 Volejboll</button>
                     <button class="sport-chip" data-s="tenis" onclick="pickCreate(this,'sport')">🎾 Tenis</button>
                     <button class="sport-chip" data-s="badminton" onclick="pickCreate(this,'sport')">🏸 Badminton</button>
+                    <button class="sport-chip" data-s="shah" onclick="pickCreate(this,'sport')">♟️ Shah</button>
                 </div>
                 <label class="input-label">Formati</label>
                 <div class="pill-row">
@@ -483,6 +486,6 @@
 <div id="toast" class="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js?v=12"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>
