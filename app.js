@@ -844,11 +844,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('intro-video');
 
     if (video) {
-        video.addEventListener('click', endIntro);
-        video.addEventListener('touchstart', endIntro, {passive:true});
         video.addEventListener('ended', endIntro);
-        // Fallback if video stalls
-        setTimeout(endIntro, 8000);
+
+        // Try to play — some browsers block autoplay
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(() => {
+                // Autoplay blocked — skip intro
+                endIntro();
+            });
+        }
+
+        // Tap to skip (only deliberate taps, not touchstart)
+        video.addEventListener('click', endIntro);
+
+        // Fallback if video stalls or loads slowly
+        setTimeout(endIntro, 12000);
     } else {
         // No video — go straight
         const saved = localStorage.getItem('sf_me');
