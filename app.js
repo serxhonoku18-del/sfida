@@ -844,21 +844,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('intro-video');
 
     if (video) {
+        // Pick the right video for the device
+        const isMobile = window.innerWidth < 900;
+        video.src = isMobile ? 'video/intro-mobile.mp4' : 'video/intro-desktop.mp4';
+        video.load();
+
         video.addEventListener('ended', endIntro);
-
-        // Try to play — some browsers block autoplay
-        const playPromise = video.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(() => {
-                // Autoplay blocked — skip intro
-                endIntro();
-            });
-        }
-
-        // Tap to skip (only deliberate taps, not touchstart)
         video.addEventListener('click', endIntro);
 
-        // Fallback if video stalls or loads slowly
+        // Handle autoplay
+        video.addEventListener('canplay', function() {
+            video.play().catch(() => endIntro());
+        }, {once: true});
+
+        // Fallback if video fails to load
+        video.addEventListener('error', endIntro);
         setTimeout(endIntro, 12000);
     } else {
         // No video — go straight
