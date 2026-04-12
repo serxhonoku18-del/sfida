@@ -844,22 +844,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('intro-video');
 
     if (video) {
-        // Pick the right video for the device
         const isMobile = window.innerWidth < 900;
-        video.src = isMobile ? 'video/intro-mobile.mp4' : 'video/intro-desktop.mp4';
-        video.load();
-
-        video.addEventListener('ended', endIntro);
-        video.addEventListener('click', endIntro);
-
-        // Handle autoplay
-        video.addEventListener('canplay', function() {
-            video.play().catch(() => endIntro());
-        }, {once: true});
-
-        // Fallback if video fails to load
-        video.addEventListener('error', endIntro);
-        setTimeout(endIntro, 12000);
+        if (isMobile) {
+            // Skip intro on mobile
+            document.getElementById('video-intro').remove();
+            const saved = localStorage.getItem('sf_me');
+            if (saved) { me = JSON.parse(saved); goTo('home'); }
+            else { document.getElementById('splash').classList.add('active'); }
+            video = null;
+        } else {
+            video.src = 'video/intro-desktop.mp4';
+            video.load();
+            video.addEventListener('ended', endIntro);
+            video.addEventListener('click', endIntro);
+            video.addEventListener('canplay', function() {
+                video.play().catch(() => endIntro());
+            }, {once: true});
+            video.addEventListener('error', endIntro);
+            setTimeout(endIntro, 12000);
+        }
     } else {
         // No video — go straight
         const saved = localStorage.getItem('sf_me');
